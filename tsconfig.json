@@ -1,5 +1,6 @@
 {
   "include": ["src/**/*.ts"], /* Specify files to include in compilation. */
+  "exclude": ["node_modules", "**/*.test.ts"], /* Specify files to exclude from compilation. */
   "compilerOptions": {
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
     /* Basic Options */
@@ -59,6 +60,11 @@
     // "experimentalDecorators": true,              /* Enables experimental support for ES7 decorators. */
     // "emitDecoratorMetadata": true,               /* Enables experimental support for emitting type metadata for decorators. */
     /* Advanced Options */
+    "declaration": false,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "importHelpers": true,
+    "skipDefaultLibCheck": true,
     "skipLibCheck": true, /* Skip type checking of declaration files. */
     "forceConsistentCasingInFileNames": true /* Disallow inconsistently-cased references to the same file. */
   }
