@@ -2,6 +2,8 @@
   "include": ["src/**/*.ts"], /* Specify files to include in compilation. */
   "exclude": ["node_modules", "**/*.test.ts"], /* Specify files to exclude from compilation. */
   "compilerOptions": {
+    "typeRoots" : ["./node_modules/@types", "typings"], /* Specify the type roots for the project. */
+    "noImplicitAny": false, /* Warn on expressions and declarations with an implied 'any' type. */
     /* Visit https://aka.ms/tsconfig.json to read more about this file */
     /* Basic Options */
     // "incremental": true,                         /* Enable incremental compilation */

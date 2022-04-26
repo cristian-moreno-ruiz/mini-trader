@@ -28,6 +28,8 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@binance/connector": "^1.8.1"
+    "binance-api-node": "^0.11.35",
+    "dotenv": "^16.0.0",
+    "short-uuid": "^4.2.0"
   }
 }
