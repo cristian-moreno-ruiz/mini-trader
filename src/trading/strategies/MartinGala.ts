@@ -2,12 +2,16 @@ import { Binance } from '../../providers/binance';
 import { Gafas } from '../../providers/gafas';
 import { round } from '../../utils';
 import { AbstractStrategy } from './AbstractStrategy';
-import { MartinGalaConfiguration } from './types';
+import { MartinGalaConfiguration, Mode } from './types';
 
 export class MartinGala implements AbstractStrategy {
 	public configuration: MartinGalaConfiguration;
 	private binance = new Binance();
 	private gafas = new Gafas();
+	private symbol: string;
+	private reference: string;
+	private pair: string;
+	private mode: Mode;
 	private state = {
 		lastOperationPrice: 0,
 		nextBuyPrice: 0,
@@ -16,14 +20,14 @@ export class MartinGala implements AbstractStrategy {
 
 	constructor(configuration: MartinGalaConfiguration) {
 		this.configuration = configuration;
+		this.symbol = this.configuration.symbol.split('/')[0];
+		this.reference = this.configuration.symbol.split('/')[1];
+		this.pair = `${this.symbol}${this.reference}`;
+		this.mode = this.configuration.mode;
 	}
 
 	public async init(): Promise<void> {
-		const symbol = this.configuration.symbol.split('/')[0];
-		const reference = this.configuration.symbol.split('/')[1];
-		const pair = `${symbol}${reference}`;
-
-		await this.binance.setIsolatedLeverage(pair, this.configuration.leverage);
+		await this.binance.setIsolatedLeverage(this.pair, this.configuration.leverage);
 
 		return;
 	}
@@ -49,37 +53,61 @@ export class MartinGala implements AbstractStrategy {
 		// }
 
 		const inPlace = await this.assertMartinGalaOrdersAreInPlace(pair);
+		const isOpen = await this.checkPositionIsOpen();
+		const currentPrice = await this.binance.getCurrentPrice(pair, this.mode);
+		const entrySize = await this.calculateEntryPrice(currentPrice);
 
-		const currentPrice = await this.binance.getCurrentPrice(pair, this.configuration.mode);
-		const balance = await this.binance.getCurrentBalance(reference, this.configuration.mode);
+		if (!isOpen) {
+			if (this.configuration.entryPrice) {
+				const entryInPlace = await this.checkEntryOrderExists(entrySize);
 
-		const amountToBuy = round(
-			(((balance * this.configuration.startSize) / 100) * this.configuration.leverage) /
-				currentPrice,
-			1,
-		);
+				if (!entryInPlace) {
+					console.log(`Placing entry order for ${pair}`);
+					await this.binance.createOrder(
+						pair,
+						this.configuration.mode,
+						this.configuration.direction,
+						entrySize,
+						this.configuration.entryPrice,
+						'LIMIT',
+						'false',
+					);
+				}
+				return true;
+			}
 
-		// const amountToBuy = 1;
+			console.log(`Opening position for ${pair}`);
+			await this.binance.createOrder(
+				pair,
+				this.configuration.mode,
+				this.configuration.direction,
+				entrySize,
+				undefined,
+				'MARKET',
+			);
 
-		// TODO: Allow entering without market
-		await this.binance.createOrder(
-			pair,
-			this.configuration.mode,
-			this.configuration.direction,
-			amountToBuy,
-			undefined,
-			'MARKET',
-		);
+			return true;
+		}
+
+		// From this point on, we can be sure we have an open position.
 
 		if (!inPlace) {
 			console.log('Got things to do:');
+
+			// TODO: Slowly put orders in place.
+			// 1. Call gafas setup
+			// 2. Save orders needed in variable
+			// 3. Check current orders
+			// 4. Remove in-place orders from variable
+			// 5. Try to place next order
+
 			const gafasSetup = await this.gafas.getSetup({
 				posicion: this.configuration.direction === 'BUY' ? 'LONG' : 'SHORT',
 				recompra: this.configuration.reBuySpacingPercentage,
 				monedasx: this.configuration.reBuyAmountPercentage,
 				stoploss: this.configuration.stopUsd,
 				entrada: currentPrice,
-				monedas: amountToBuy,
+				monedas: entrySize,
 			});
 
 			const orders = await this.parseGafasSetup(gafasSetup, this.configuration.direction);
@@ -92,7 +120,7 @@ export class MartinGala implements AbstractStrategy {
 		return false;
 	}
 
-	private async assertMartinGalaOrdersAreInPlace(pair: string): Promise<boolean> {
+	private async assertMartinGalaOrdersAreInPlace(_pair: string): Promise<boolean> {
 		return false;
 	}
 
@@ -136,18 +164,80 @@ export class MartinGala implements AbstractStrategy {
 	}
 
 	private async createMartinGalaOrders(orders, pair): Promise<void> {
-		const proms = orders.map((order) =>
-			this.binance.createOrder(
-				pair,
-				this.configuration.mode,
-				order.side,
-				order.quantityUsd,
-				order.price,
-				'LIMIT',
-				order.reduceOnly,
-			),
+		for (const order of orders) {
+			console.log('Creating order');
+			try {
+				await this.binance.createOrder(
+					pair,
+					this.configuration.mode,
+					order.side,
+					order.quantityUsd,
+					order.price,
+					'LIMIT',
+					order.reduceOnly,
+				);
+			}
+		} 
+		// const proms = orders.map((order) =>
+		// 	this.binance.createOrder(
+		// 		pair,
+		// 		this.configuration.mode,
+		// 		order.side,
+		// 		order.quantityUsd,
+		// 		order.price,
+		// 		'LIMIT',
+		// 		order.reduceOnly,
+		// 	),
+		// // );
+
+
+
+		// await Promise.all(proms);
+	}
+
+	private async checkPositionIsOpen(): Promise<boolean> {
+		const position = await this.binance.getCurrentPosition(this.pair, this.mode);
+		if (+position?.positionAmt !== 0) {
+			return true;
+		}
+		return false;
+	}
+
+	private async checkEntryOrderExists(amount: number): Promise<boolean> {
+		const orders = await this.binance.getCurrentOrders(this.pair, this.mode);
+		if (orders.length === 0) {
+			return false;
+		}
+
+		if (orders.length > 1) {
+			// TODO: Maybe this needs to do in main `trade`, and return false so we stop the execution.
+			throw `Trying to set entry order but there are already many orders for ${this.pair}`;
+		}
+
+		if (
+			orders[0].type === 'LIMIT' &&
+			orders[0].side === this.configuration.direction &&
+			+orders[0].origQty === amount
+		) {
+			return true;
+		}
+		throw 'Unexpected Error';
+	}
+
+	private async calculateEntryPrice(currentPrice: number) {
+		const balance = await this.binance.getCurrentBalance(this.reference, this.mode);
+
+		const precision = await this.binance.getPrecision(this.pair, this.mode);
+
+		let amountToBuy = round(
+			(((balance * this.configuration.startSize) / 100) * this.configuration.leverage) /
+			currentPrice,
+			precision,
 		);
 
-		await Promise.all(proms);
+		while (amountToBuy * currentPrice < 5) {
+			amountToBuy = round(amountToBuy + 1, precision);
+		}
+		return amountToBuy;
 	}
 }

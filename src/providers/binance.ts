@@ -77,6 +77,7 @@ export class Binance {
 		quantity: number,
 		price?: number,
 		type = 'LIMIT',
+		reduceOnly?: 'true' | 'false',
 	): Promise<any> {
 		if (mode === 'SPOT') {
 			// TODO:
@@ -86,7 +87,9 @@ export class Binance {
 				newClientOrderId: `MINI_TRADER:${short.generate()}`,
 				price,
 				quantity: quantity.toString(),
-				reduceOnly: side === 'SELL' ? ('true' as 'true' | 'false') : ('false' as 'true' | 'false'),
+				reduceOnly:
+					reduceOnly ||
+					(type === 'LIMIT' ? ('true' as 'true' | 'false') : ('false' as 'true' | 'false')),
 				side: side as OrderSide_LT,
 				symbol: pair,
 				type: type as OrderType_LT,
@@ -114,5 +117,21 @@ export class Binance {
 		} else if (mode === 'FUTURES') {
 			await this.client.futuresCancelAllOpenOrders({ symbol: pair });
 		}
+	}
+
+	public async getPrecision(pair: string, mode: string): Promise<number> {
+		if (mode === 'SPOT') {
+			// TODO:
+			return 0;
+		} else if (mode === 'FUTURES') {
+			const exchangeInfo = await this.client.futuresExchangeInfo();
+			const symbol = exchangeInfo.symbols.find(
+				// @ts-expect-error pair and contract not present in types
+				(s) => s.pair === pair && s.contractType === 'PERPETUAL',
+			);
+			// @ts-expect-error precision not present in types
+			return symbol?.quantityPrecision as number;
+		}
+		return 0;
 	}
 }

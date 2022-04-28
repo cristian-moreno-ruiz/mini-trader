@@ -26,16 +26,32 @@ export const strategies: StrategyConfiguration[] = [
 	// 	reBuySpacingPercentage: 2,
 	// 	stopUsd: 5,
 	// },
-	{
+	// {
+	// 	strategy: 'MartinGala',
+	// 	mode: 'FUTURES',
+		
+	// 	startSize: 1,
+	// 	reBuyAmountPercentage: 40,
+	// 	reBuySpacingPercentage: 1.5,
+	// 	stopUsd: 5,
+		
+	// 	leverage: 15,
+	// 	direction: 'BUY',
+	// 	symbol: 'GMT/USDT',
+	// 	entryPrice: 3.83,
+	// },
+		{
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
-		symbol: 'GMT/USDT',
-		leverage: 15,
-	
+		
 		startSize: 1,
-		direction: 'BUY',
 		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
+		reBuySpacingPercentage: 1.5,
 		stopUsd: 5,
+		
+		leverage: 10,
+		direction: 'BUY',
+		symbol: 'XRP/USDT',
+		entryPrice: 0.6448,
 	},
 ];
