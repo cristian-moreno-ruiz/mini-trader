@@ -1,27 +1,33 @@
-import { configuration } from '../configuration';
+import { settings, strategies } from '../configuration';
 import { AbstractStrategy } from './strategies/AbstractStrategy';
 import { BuyLowSellHigh } from './strategies/BuyLowSellHigh';
+import { MartinGala } from './strategies/MartinGala';
 
-const strategies: Record<string, AbstractStrategy> = {
-	BuyLowSellHigh: new BuyLowSellHigh(),
+const engines: Record<string, new (_) => AbstractStrategy> = {
+	BuyLowSellHigh,
+	MartinGala,
 };
 
-export async function execute() {
-	const strategy = strategies[configuration.strategy];
+export async function execute(): Promise<void> {
+	const strats = strategies.map((strat) => new engines[strat.strategy](strat));
 
-	console.log(`Initiating trade using ${configuration.strategy} strategy`);
-	await strategy.init();
+	const promises = strats.map(async (strategy) => {
+		const summary = `${strategy.configuration?.strategy}-${strategy.configuration?.symbol}`;
+		await strategy.init();
+		console.log(`Initiating trade using ${summary}`);
 
-	// TODO: Use better CLI wrapper ??
-	// eslint-disable-next-line no-constant-condition
-	while (true) {
-		await strategy.trade().catch(async (err) => {
-			console.log(err);
-			await strategy.trade();
-		});
+		let next = await strategy.trade();
+		while (next === true) {
+			try {
+				await new Promise((res) => setTimeout(res, settings.sleep * 1000));
+				next = await strategy.trade();
+				process.stdout.write(`. ${settings.sleep}s . `);
+			} catch (err) {
+				console.error(`Error on ${summary}`, err);
+			}
+		}
+	});
 
-		// console.log(`Next check is in ${configuration.tick} seconds.`);
-		process.stdout.write(`. ${configuration.tick}s . `);
-		await new Promise((res) => setTimeout(res, configuration.tick * 1000));
-	}
+	await Promise.all(promises);
+	console.log('We are done, Bye');
 }

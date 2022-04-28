@@ -24,7 +24,7 @@ module.exports = {
 		'quote-props': ['error', 'as-needed'],
 		quotes: ['error', 'single'],
 		semi: ['error', 'always'],
-		'sort-keys': ['error', 'asc', { caseSensitive: true, minKeys: 2, natural: false }],
+		// 'sort-keys': ['error', 'asc', { caseSensitive: true, minKeys: 2, natural: false }],
 		'spaced-comment': ['warn', 'always'],
 	},
 };

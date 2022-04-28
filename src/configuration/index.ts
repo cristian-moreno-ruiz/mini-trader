@@ -1,1 +1,2 @@
-export { configuration } from './config';
+export { strategies } from './strategies';
+export { settings } from './settings';
