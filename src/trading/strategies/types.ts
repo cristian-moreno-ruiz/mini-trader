@@ -21,8 +21,12 @@ export interface BuyLowSellHighConfiguration {
 export interface MartinGalaConfiguration {
 	strategy: Strategy;
 	mode: Mode;
+	restart?: boolean;
+
 	symbol: string;
 	leverage: number;
+	profitPercentage: number;
+	profitCallbackPercentage: number;
 
 	startSize: number;
 	direction: 'BUY' | 'SELL';

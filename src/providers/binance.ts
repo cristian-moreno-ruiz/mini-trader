@@ -74,10 +74,14 @@ export class Binance {
 		pair: string,
 		mode: string,
 		side: string,
-		quantity: number,
+		// Specified in coins unit
+		quantity?: number,
+		// Respect to the reference
 		price?: number,
 		type = 'LIMIT',
 		reduceOnly?: 'true' | 'false',
+		// closePosition?: 'true' | 'false',
+		callback?: number,
 	): Promise<any> {
 		if (mode === 'SPOT') {
 			// TODO:
@@ -86,18 +90,33 @@ export class Binance {
 			const data = {
 				newClientOrderId: `MINI_TRADER:${short.generate()}`,
 				price,
-				quantity: quantity.toString(),
+				quantity: quantity?.toString(),
 				reduceOnly:
 					reduceOnly ||
 					(type === 'LIMIT' ? ('true' as 'true' | 'false') : ('false' as 'true' | 'false')),
 				side: side as OrderSide_LT,
 				symbol: pair,
 				type: type as OrderType_LT,
+				// closePosition: closePosition || 'false',
 			};
 
 			if (!price) {
 				delete data.price;
 			}
+			if (!quantity) {
+				delete data.quantity;
+			}
+			if (type === 'TRAILING_STOP_MARKET') {
+				delete data.price;
+				// @ts-expect-error activation
+				data.activationPrice = price.toString();
+				// @ts-expect-error callback
+				data.callbackRate = callback?.toString();
+			}
+			// if (closePosition === 'true') {
+			// 	// @ts-expect-error fru
+			// 	delete data.reduceOnly;
+			// }
 
 			const order = await this.client.futuresOrder(data);
 			return order;
@@ -109,6 +128,14 @@ export class Binance {
 			.futuresMarginType({ marginType: 'ISOLATED', symbol: pair })
 			.catch(() => console.log('Margin ok'));
 		await this.client.futuresLeverage({ leverage: leverage, symbol: pair });
+	}
+
+	public async deleteOrder(pair: string, mode: string, orderId: number) {
+		if (mode === 'SPOT') {
+			return;
+		} else if (mode === 'FUTURES') {
+			await this.client.futuresCancelOrder({ symbol: pair, orderId });
+		}
 	}
 
 	public async deleteAllOrders(pair: string, mode: string) {

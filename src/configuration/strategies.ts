@@ -48,10 +48,29 @@ export const strategies: StrategyConfiguration[] = [
 		reBuyAmountPercentage: 40,
 		reBuySpacingPercentage: 1.5,
 		stopUsd: 5,
+		profitPercentage: 8,
+		profitCallbackPercentage: 0.1,
 		
 		leverage: 10,
 		direction: 'BUY',
 		symbol: 'XRP/USDT',
-		entryPrice: 0.6448,
+		// entryPrice: 0.6448,
+	},
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		restart: true,
+		
+		startSize: 5,
+		reBuyAmountPercentage: 40,
+		reBuySpacingPercentage: 1.5,
+		stopUsd: 5,
+		profitPercentage: 12,
+		profitCallbackPercentage: 0.1,
+		
+		leverage: 10,
+		direction: 'BUY',
+		symbol: 'APE/USDT',
+		// entryPrice: 22.35,
 	},
 ];
