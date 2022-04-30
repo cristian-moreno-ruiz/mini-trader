@@ -4,7 +4,7 @@ import { round } from '../../utils';
 import { AbstractStrategy } from './AbstractStrategy';
 import { MartinGalaConfiguration, Mode } from './types';
 
-export class MartinGala implements AbstractStrategy {
+export class MartinGala extends AbstractStrategy {
 	public configuration: MartinGalaConfiguration;
 	private binance = new Binance();
 	private gafas = new Gafas();
@@ -21,6 +21,7 @@ export class MartinGala implements AbstractStrategy {
 	private pendingOrders: any[] = [];
 
 	constructor(configuration: MartinGalaConfiguration) {
+		super(configuration.symbol);
 		this.configuration = configuration;
 		this.symbol = this.configuration.symbol.split('/')[0];
 		this.reference = this.configuration.symbol.split('/')[1];
@@ -29,7 +30,7 @@ export class MartinGala implements AbstractStrategy {
 	}
 
 	public async init(): Promise<void> {
-		await this.binance.setIsolatedLeverage(this.pair, this.configuration.leverage);
+		// await this.binance.setIsolatedLeverage(this.pair, this.configuration.leverage);
 
 		return;
 	}
@@ -67,7 +68,7 @@ export class MartinGala implements AbstractStrategy {
 			const entryInPlace = await this.checkEntryOrderExists(entrySize);
 			if (this.configuration.entryPrice) {
 				if (!entryInPlace) {
-					console.log(`Placing entry order for ${pair}`);
+					this.log(`Placing entry order for ${pair}`);
 					await this.binance.createOrder(
 						pair,
 						this.configuration.mode,
@@ -81,7 +82,7 @@ export class MartinGala implements AbstractStrategy {
 				return true;
 			}
 
-			console.log(`Opening position for ${pair}`);
+			this.log(`Opening position for ${pair}`);
 			await this.binance.createOrder(
 				pair,
 				this.configuration.mode,
@@ -97,7 +98,7 @@ export class MartinGala implements AbstractStrategy {
 		// From this point on, we can be sure we have an open position.
 
 		if (!inPlace && !this.pendingOrders.length) {
-			console.log('Got things to do:');
+			this.log('Got things to do:');
 
 			// TODO: Slowly put orders in place.
 			// 1. Call gafas setup
@@ -156,8 +157,10 @@ export class MartinGala implements AbstractStrategy {
 		const reBuys = gafasSetup
 			.filter((order) => order.numero.indexOf('SL') === -1)
 			.map((order) => ({
-				price: round(+order.precio, 4),
+				// TODO: Antes funcionaba con 4, no me gusta tener solo 3 aqui. El trailing si que va con 4...
+				price: round(+order.precio, 3),
 				quantity: round(+order.monedas, this.precision),
+				type: 'LIMIT',
 				side: side === 'BUY' ? 'BUY' : 'SELL',
 				reduceOnly: 'false',
 			}));
@@ -170,6 +173,7 @@ export class MartinGala implements AbstractStrategy {
 				// TODO: Does this one needs to be stop_market?
 				price: round(+stop.precio, 4),
 				quantity: round(+stop.monedas, this.precision),
+				type: 'STOP',
 				side: side === 'BUY' ? 'SELL' : 'BUY',
 				reduceOnly: 'true',
 			},
@@ -178,7 +182,7 @@ export class MartinGala implements AbstractStrategy {
 
 	private async createMartinGalaOrders(orders, pair): Promise<void> {
 		for (const order of orders) {
-			console.log('Creating order');
+			this.log('Creating order');
 			try {
 				await this.binance.createOrder(
 					pair,
@@ -189,9 +193,9 @@ export class MartinGala implements AbstractStrategy {
 					'LIMIT',
 					order.reduceOnly,
 				);
-			} catch (err) {
+			} catch (err: any) {
 				this.pendingOrders.push(order);
-				console.error(err);
+				this.error({ message: err.message, code: err.code, url: err.url });
 			}
 		}
 	}

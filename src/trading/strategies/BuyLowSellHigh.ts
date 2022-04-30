@@ -3,7 +3,7 @@ import { round } from '../../utils';
 import { AbstractStrategy } from './AbstractStrategy';
 import { BuyLowSellHighConfiguration } from './types';
 
-export class BuyLowSellHigh implements AbstractStrategy {
+export class BuyLowSellHigh extends AbstractStrategy {
 	public configuration: BuyLowSellHighConfiguration;
 	private binance = new Binance();
 	private state = {
@@ -13,6 +13,7 @@ export class BuyLowSellHigh implements AbstractStrategy {
 	};
 
 	constructor(configuration: BuyLowSellHighConfiguration) {
+		super(configuration.symbol);
 		this.configuration = configuration;
 	}
 
