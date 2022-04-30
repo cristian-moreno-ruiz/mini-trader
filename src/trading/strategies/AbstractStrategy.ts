@@ -13,10 +13,18 @@ export abstract class AbstractStrategy {
 	public abstract init(): Promise<void>;
 
 	public log(message: any): void {
-		console.log(this.summary + message?.toString());
+		if (typeof message === 'object' || !Array.isArray(message)) {
+			console.log(this.summary + JSON.stringify(message));
+		} else {
+			console.log(this.summary + message?.toString());
+		}
 	}
 
 	public error(message: any): void {
-		console.error(this.summary + message?.toString());
+		if (typeof message === 'object' || !Array.isArray(message)) {
+			console.error(this.summary + JSON.stringify(message));
+		} else {
+			console.error(this.summary + message?.toString());
+		}
 	}
 }

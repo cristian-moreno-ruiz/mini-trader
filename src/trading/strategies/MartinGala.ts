@@ -68,7 +68,9 @@ export class MartinGala extends AbstractStrategy {
 			const entryInPlace = await this.checkEntryOrderExists(entrySize);
 			if (this.configuration.entryPrice) {
 				if (!entryInPlace) {
-					this.log(`Placing entry order for ${pair}`);
+					this.log(
+						`Placing entry order for ${pair}: ${entrySize}@${this.configuration.entryPrice}`,
+					);
 					await this.binance.createOrder(
 						pair,
 						this.configuration.mode,
@@ -82,7 +84,7 @@ export class MartinGala extends AbstractStrategy {
 				return true;
 			}
 
-			this.log(`Opening position for ${pair}`);
+			this.log(`Opening position (Market) for ${pair}: ${entrySize}@${currentPrice}`);
 			await this.binance.createOrder(
 				pair,
 				this.configuration.mode,
@@ -182,7 +184,7 @@ export class MartinGala extends AbstractStrategy {
 
 	private async createMartinGalaOrders(orders, pair): Promise<void> {
 		for (const order of orders) {
-			this.log('Creating order');
+			this.log(`Creating order ${order.side}/${order.type} ${order.quantity}@${order.price}`);
 			try {
 				await this.binance.createOrder(
 					pair,
@@ -190,7 +192,7 @@ export class MartinGala extends AbstractStrategy {
 					order.side,
 					order.quantity,
 					order.price,
-					'LIMIT',
+					order.type,
 					order.reduceOnly,
 				);
 			} catch (err: any) {
@@ -211,6 +213,7 @@ export class MartinGala extends AbstractStrategy {
 	private async checkEntryOrderExists(amount: number): Promise<boolean> {
 		const orders = await this.binance.getCurrentOrders(this.pair, this.mode);
 		if (orders.length === 0) {
+			this.log('Resetting pendingOrders array.');
 			this.pendingOrders = [];
 			return false;
 		}
@@ -218,6 +221,7 @@ export class MartinGala extends AbstractStrategy {
 		if (orders.length > 1) {
 			// TODO: Maybe this needs to do in main `trade`, and return false so we stop the execution.
 			// throw `Trying to set entry order but there are already many orders for ${this.pair}`;
+			this.log('Removing past order and resetting pendingOrders array.');
 			await this.binance.deleteAllOrders(this.pair, this.mode);
 			this.pendingOrders = [];
 			return false;
@@ -259,6 +263,7 @@ export class MartinGala extends AbstractStrategy {
 			if (+profitOrder.origQty === +currentPosition.positionAmt) {
 				return;
 			}
+			this.log('Deleting past profit order.');
 			await this.binance.deleteOrder(this.pair, this.mode, profitOrder.orderId);
 		}
 
@@ -274,10 +279,14 @@ export class MartinGala extends AbstractStrategy {
 						(this.configuration.profitPercentage - this.configuration.profitCallbackPercentage) /
 							(100 * this.configuration.leverage));
 
+		const direction = this.configuration.direction === 'BUY' ? 'SELL' : 'BUY';
+		this.log(
+			`Creating profit order ${direction}/TRAILING_STOP_MARKET ${currentPosition.positionAmt}@${profitPrice}`,
+		);
 		await this.binance.createOrder(
 			this.pair,
 			this.configuration.mode,
-			this.configuration.direction === 'BUY' ? 'SELL' : 'BUY',
+			direction,
 			currentPosition.positionAmt,
 			round(profitPrice, 4),
 			'TRAILING_STOP_MARKET',
