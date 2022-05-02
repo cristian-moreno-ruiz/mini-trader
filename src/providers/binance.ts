@@ -113,6 +113,11 @@ export class Binance {
 				// @ts-expect-error callback
 				data.callbackRate = callback?.toString();
 			}
+			if (type === 'STOP_MARKET') {
+				delete data.price;
+				// @ts-expect-error activation
+				data.stopPrice = price.toString();
+			}
 			// if (closePosition === 'true') {
 			// 	// @ts-expect-error fru
 			// 	delete data.reduceOnly;

@@ -88,7 +88,12 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 20,
 		direction: 'BUY',
 		symbol: 'GMT/USDT',
-		// entryPrice: 22.35,
+		
+		entry: {
+			price: undefined,
+			activationPercentage: 0.3,
+			callbackPercentage: 0.1,
+		},
 	},
 	{
 		strategy: 'MartinGala',
@@ -100,12 +105,11 @@ export const strategies: StrategyConfiguration[] = [
 		reBuySpacingPercentage: 2,
 		stopUsd: 10,
 		profitPercentage: 8,
-		profitCallbackPercentage: 0.3,
+		profitCallbackPercentage: 0.2,
 		
 		leverage: 15,
 		direction: 'SELL',
 		symbol: 'ADA/BUSD',
-		// entryPrice: 22.35,
 	},
 	{
 		strategy: 'MartinGala',
@@ -122,6 +126,5 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 20,
 		direction: 'BUY',
 		symbol: 'NEAR/USDT',
-		// entryPrice: 22.35,
 	},
 ];

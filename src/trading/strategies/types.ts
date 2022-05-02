@@ -33,5 +33,10 @@ export interface MartinGalaConfiguration {
 	reBuyAmountPercentage: number;
 	reBuySpacingPercentage: number;
 	stopUsd: number;
-	entryPrice?: number;
+
+	entry?: {
+		price?: number;
+		activationPercentage?: number;
+		callbackPercentage?: number;
+	};
 }
