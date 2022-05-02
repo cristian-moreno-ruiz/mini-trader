@@ -56,6 +56,23 @@ export const strategies: StrategyConfiguration[] = [
 	// 	symbol: 'XRP/USDT',
 	// 	// entryPrice: 0.6448,
 	// },
+	// {
+	// 	strategy: 'MartinGala',
+	// 	mode: 'FUTURES',
+	// 	restart: true,
+		
+	// 	startSize: 5,
+	// 	reBuyAmountPercentage: 40,
+	// 	reBuySpacingPercentage: 1.5,
+	// 	stopUsd: 5,
+	// 	profitPercentage: 12,
+	// 	profitCallbackPercentage: 0.1,
+		
+	// 	leverage: 10,
+	// 	direction: 'BUY',
+	// 	symbol: 'APE/USDT',
+	// 	// entryPrice: 22.35,
+	// },
 	{
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
@@ -63,14 +80,14 @@ export const strategies: StrategyConfiguration[] = [
 		
 		startSize: 5,
 		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 1.5,
-		stopUsd: 5,
-		profitPercentage: 12,
-		profitCallbackPercentage: 0.1,
+		reBuySpacingPercentage: 2,
+		stopUsd: 10,
+		profitPercentage: 8,
+		profitCallbackPercentage: 0.3,
 		
-		leverage: 10,
+		leverage: 20,
 		direction: 'BUY',
-		symbol: 'APE/USDT',
+		symbol: 'GMT/USDT',
 		// entryPrice: 22.35,
 	},
 	{
@@ -80,14 +97,31 @@ export const strategies: StrategyConfiguration[] = [
 		
 		startSize: 5,
 		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 1.5,
-		stopUsd: 5,
+		reBuySpacingPercentage: 2,
+		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
 		
-		leverage: 10,
+		leverage: 15,
+		direction: 'SELL',
+		symbol: 'ADA/BUSD',
+		// entryPrice: 22.35,
+	},
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		restart: true,
+		
+		startSize: 5,
+		reBuyAmountPercentage: 40,
+		reBuySpacingPercentage: 2,
+		stopUsd: 10,
+		profitPercentage: 8,
+		profitCallbackPercentage: 0.3,
+		
+		leverage: 20,
 		direction: 'BUY',
-		symbol: 'GMT/USDT',
+		symbol: 'NEAR/USDT',
 		// entryPrice: 22.35,
 	},
 ];
