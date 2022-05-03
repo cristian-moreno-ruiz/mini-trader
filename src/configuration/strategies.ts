@@ -73,28 +73,28 @@ export const strategies: StrategyConfiguration[] = [
 	// 	symbol: 'APE/USDT',
 	// 	// entryPrice: 22.35,
 	// },
-	{
-		strategy: 'MartinGala',
-		mode: 'FUTURES',
-		restart: true,
+	// {
+	// 	strategy: 'MartinGala',
+	// 	mode: 'FUTURES',
+	// 	restart: true,
 
-		startSize: 5,
-		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
-		stopUsd: 10,
-		profitPercentage: 8,
-		profitCallbackPercentage: 0.3,
+	// 	startSize: 5,
+	// 	reBuyAmountPercentage: 40,
+	// 	reBuySpacingPercentage: 2,
+	// 	stopUsd: 10,
+	// 	profitPercentage: 8,
+	// 	profitCallbackPercentage: 0.3,
 
-		leverage: 20,
-		direction: 'BUY',
-		symbol: 'GMT/USDT',
+	// 	leverage: 20,
+	// 	direction: 'BUY',
+	// 	symbol: 'GMT/USDT',
 
-		entry: {
-			price: undefined,
-			activationPercentage: 0.3,
-			callbackPercentage: 0.1,
-		},
-	},
+	// 	entry: {
+	// 		price: undefined,
+	// 		activationPercentage: 0.3,
+	// 		callbackPercentage: 0.1,
+	// 	},
+	// },
 	{
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
