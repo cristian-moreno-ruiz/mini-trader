@@ -164,10 +164,10 @@ export const strategies: StrategyConfiguration[] = [
 		direction: 'SELL',
 		symbol: 'ETH/BUSD',
 
-		entry: {
-			price: undefined,
-			activationPercentage: 0.2,
-			callbackPercentage: 0.1,
-		},
+		// entry: {
+		// 	price: undefined,
+		// 	activationPercentage: 0.2,
+		// 	callbackPercentage: 0.1,
+		// },
 	},
 ];
