@@ -166,4 +166,36 @@ export class Binance {
 		}
 		return 0;
 	}
+
+	public async getFilledOrders(
+		pair: string,
+		mode: string,
+		dates?: { start: Date; end: Date },
+	): Promise<any> {
+		let filled;
+		if (mode === 'SPOT') {
+			const orders = await this.client.openOrders({ symbol: pair });
+			// open = account.balances.find((b) => b.asset === symbol).free;
+			filled = orders;
+		} else if (mode === 'FUTURES') {
+			const data = {
+				symbol: pair,
+				startTime: dates?.start?.getTime(),
+				endTime: dates?.end?.getTime(),
+			};
+
+			if (!dates?.start) {
+				delete data?.startTime;
+			}
+
+			if (!dates?.end) {
+				delete data?.endTime;
+			}
+			// @ts-expect-error for some reason, not in types
+			const orders = await this.client.futuresAllOrders(data);
+			filled = orders.filter((o) => o.status === 'FILLED');
+		}
+
+		return filled;
+	}
 }

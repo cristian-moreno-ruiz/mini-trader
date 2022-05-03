@@ -13,11 +13,7 @@ export class MartinGala extends AbstractStrategy {
 	private pair: string;
 	private mode: Mode;
 	private precision = 0;
-	private state = {
-		lastOperationPrice: 0,
-		nextBuyPrice: 0,
-		nextSellPrice: 0,
-	};
+	private stop = false;
 	private pendingOrders: any[] = [];
 
 	constructor(configuration: MartinGalaConfiguration) {
@@ -63,6 +59,16 @@ export class MartinGala extends AbstractStrategy {
 
 		if (!isOpen) {
 			// TODO: Check if there is an emergency stop, if so, stop the execution (or wait XXX minutes).
+			const stop = await this.checkEmergencyStop();
+
+			if (stop) {
+				this.log('Emergency stop triggered.');
+				// TODO: Send an alert, email, sms, slack, (what could it be to arrive to the smart phone?)
+				// await new Promise((res) => setTimeout(res, settings.sleep * 1000));
+				// TODO: Maybe configurable (now it is 8 hours)
+				await new Promise((res) => setTimeout(res, 8 * 60 * 60 * 1000));
+				return;
+			}
 
 			const entryInPlace = await this.checkEntryOrderExists(entrySize);
 			if (this.configuration.entry) {
@@ -306,9 +312,31 @@ export class MartinGala extends AbstractStrategy {
 		);
 
 		while (amountToBuy * currentPrice < 5) {
-			amountToBuy = round(amountToBuy + 1, precision);
+			amountToBuy = round(amountToBuy + Math.pow(10, -precision), precision);
 		}
 		return amountToBuy;
+	}
+
+	private async checkEmergencyStop() {
+		if (this.stop === true) {
+			return true;
+		}
+
+		// if there was a stop withing the last 5 minutes, then set to true.
+		const last5Mins = await this.binance.getFilledOrders(this.pair, this.mode, {
+			start: new Date(Date.now() - 5 * 60 * 1000),
+			end: new Date(Date.now()),
+		});
+
+		const stop = last5Mins.find(
+			(order) => order.type === 'STOP_MARKET' && order.side !== this.configuration.direction,
+		);
+
+		if (stop) {
+			this.stop = true;
+			return true;
+		}
+		return false;
 	}
 
 	private async createProfitOrderIfNeeded() {

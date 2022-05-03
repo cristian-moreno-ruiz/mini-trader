@@ -21,9 +21,9 @@ export async function execute(): Promise<void> {
 			try {
 				await new Promise((res) => setTimeout(res, settings.sleep * 1000));
 				next = await strategy.trade();
-				process.stdout.write(`. ${settings.sleep}s . `);
+				strategy.log(`. ${settings.sleep}s . `);
 			} catch (err) {
-				console.error(`Error on ${summary}`, err);
+				strategy.error(err);
 			}
 		}
 	});

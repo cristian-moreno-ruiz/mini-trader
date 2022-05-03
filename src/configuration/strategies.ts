@@ -19,7 +19,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	mode: 'FUTURES',
 	// 	symbol: 'XRP/BUSD',
 	// 	leverage: 15,
-	
+
 	// 	startSize: 1,
 	// 	direction: 'BUY',
 	// 	reBuyAmountPercentage: 40,
@@ -29,12 +29,12 @@ export const strategies: StrategyConfiguration[] = [
 	// {
 	// 	strategy: 'MartinGala',
 	// 	mode: 'FUTURES',
-		
+
 	// 	startSize: 1,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
-		
+
 	// 	leverage: 15,
 	// 	direction: 'BUY',
 	// 	symbol: 'GMT/USDT',
@@ -43,14 +43,14 @@ export const strategies: StrategyConfiguration[] = [
 	// 	{
 	// 	strategy: 'MartinGala',
 	// 	mode: 'FUTURES',
-		
+
 	// 	startSize: 1,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
 	// 	profitPercentage: 8,
 	// 	profitCallbackPercentage: 0.1,
-		
+
 	// 	leverage: 10,
 	// 	direction: 'BUY',
 	// 	symbol: 'XRP/USDT',
@@ -60,14 +60,14 @@ export const strategies: StrategyConfiguration[] = [
 	// 	strategy: 'MartinGala',
 	// 	mode: 'FUTURES',
 	// 	restart: true,
-		
+
 	// 	startSize: 5,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
 	// 	profitPercentage: 12,
 	// 	profitCallbackPercentage: 0.1,
-		
+
 	// 	leverage: 10,
 	// 	direction: 'BUY',
 	// 	symbol: 'APE/USDT',
@@ -77,18 +77,18 @@ export const strategies: StrategyConfiguration[] = [
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
 		restart: true,
-		
+
 		startSize: 5,
 		reBuyAmountPercentage: 40,
 		reBuySpacingPercentage: 2,
 		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
-		
+
 		leverage: 20,
 		direction: 'BUY',
 		symbol: 'GMT/USDT',
-		
+
 		entry: {
 			price: undefined,
 			activationPercentage: 0.3,
@@ -99,14 +99,14 @@ export const strategies: StrategyConfiguration[] = [
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
 		restart: true,
-		
+
 		startSize: 5,
 		reBuyAmountPercentage: 40,
 		reBuySpacingPercentage: 2,
 		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.2,
-		
+
 		leverage: 15,
 		direction: 'SELL',
 		symbol: 'ADA/BUSD',
@@ -115,16 +115,59 @@ export const strategies: StrategyConfiguration[] = [
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
 		restart: true,
-		
+
 		startSize: 5,
 		reBuyAmountPercentage: 40,
 		reBuySpacingPercentage: 2,
 		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
-		
+
 		leverage: 20,
 		direction: 'BUY',
 		symbol: 'NEAR/USDT',
+	},
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		restart: true,
+
+		startSize: 5,
+		reBuyAmountPercentage: 40,
+		reBuySpacingPercentage: 2,
+		stopUsd: 10,
+		profitPercentage: 8,
+		profitCallbackPercentage: 0.3,
+
+		leverage: 10,
+		direction: 'BUY',
+		symbol: 'BTC/BUSD',
+		entry: {
+			price: undefined,
+			activationPercentage: 0.2,
+			callbackPercentage: 0.1,
+		},
+	},
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		restart: true,
+
+		startSize: 5,
+		reBuyAmountPercentage: 40,
+		reBuySpacingPercentage: 2,
+		stopUsd: 10,
+		profitPercentage: 8,
+		profitCallbackPercentage: 0.3,
+
+		leverage: 10,
+		direction: 'SELL',
+		symbol: 'ETH/BUSD',
+
+		entry: {
+			price: undefined,
+			activationPercentage: 0.2,
+			callbackPercentage: 0.1,
+		},
 	},
 ];
