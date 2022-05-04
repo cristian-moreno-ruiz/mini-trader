@@ -167,6 +167,22 @@ export class Binance {
 		return 0;
 	}
 
+	public async getPricePrecision(pair: string, mode: string): Promise<number> {
+		if (mode === 'SPOT') {
+			// TODO:
+			return 0;
+		} else if (mode === 'FUTURES') {
+			const exchangeInfo = await this.client.futuresExchangeInfo();
+			const symbol = exchangeInfo.symbols.find(
+				// @ts-expect-error pair and contract not present in types
+				(s) => s.pair === pair && s.contractType === 'PERPETUAL',
+			);
+			// @ts-expect-error precision not present in types
+			return symbol?.pricePrecision as number;
+		}
+		return 0;
+	}
+
 	public async getFilledOrders(
 		pair: string,
 		mode: string,
@@ -197,5 +213,44 @@ export class Binance {
 		}
 
 		return filled;
+	}
+
+	public async getIncomeHistory(
+		symbol?: string,
+		mode = 'FUTURES',
+		dates?: { start: Date; end: Date },
+	): Promise<any> {
+		if (mode !== 'FUTURES') {
+			return [];
+		}
+		const data = {
+			limit: 1000,
+			symbol,
+			startTime: dates?.start?.getTime(),
+			endTime: dates?.end?.getTime(),
+		};
+
+		if (!symbol) {
+			delete data.symbol;
+		}
+		if (!dates?.start) {
+			delete data?.startTime;
+		}
+
+		if (!dates?.end) {
+			delete data?.endTime;
+		}
+
+		const income: any = [];
+		let res;
+		while (!res || res.length === 1000) {
+			res = await this.client.futuresIncome(data);
+			income.push(...res);
+
+			// data.fromId = res[res.length - 1].tradeId;
+			data.startTime = res[res.length - 1].time;
+		}
+
+		return income;
 	}
 }

@@ -10,11 +10,12 @@ export class MartinGala extends AbstractStrategy {
 	private gafas = new Gafas();
 	private symbol: string;
 	private reference: string;
-	private pair: string;
 	private mode: Mode;
 	private precision = 0;
+	private pricePrecision = 3;
 	private stop = false;
 	private pendingOrders: any[] = [];
+	private stopLossIsNextSent = false;
 
 	constructor(configuration: MartinGalaConfiguration) {
 		super(configuration.symbol);
@@ -33,6 +34,7 @@ export class MartinGala extends AbstractStrategy {
 
 	public async trade(): Promise<boolean> {
 		this.precision = await this.binance.getPrecision(this.pair, this.mode);
+		this.pricePrecision = await this.binance.getPricePrecision(this.pair, this.mode);
 
 		const entry = await this.createEntryIfNeeded();
 		if (entry !== undefined) {
@@ -40,6 +42,8 @@ export class MartinGala extends AbstractStrategy {
 		}
 
 		await this.createMartinGalaOrdersIfNeeded();
+
+		await this.verifyMartinGalaOrdersSanity();
 
 		await this.createProfitOrderIfNeeded();
 
@@ -62,6 +66,9 @@ export class MartinGala extends AbstractStrategy {
 			const stop = await this.checkEmergencyStop();
 
 			if (stop) {
+				this.sendNotification(
+					'Emergency stop triggered because we hit a Stop Loss. Pausing this trade for 8h.',
+				);
 				this.log('Emergency stop triggered.');
 				// TODO: Send an alert, email, sms, slack, (what could it be to arrive to the smart phone?)
 				// await new Promise((res) => setTimeout(res, settings.sleep * 1000));
@@ -131,6 +138,70 @@ export class MartinGala extends AbstractStrategy {
 		}
 	}
 
+	private async verifyMartinGalaOrdersSanity() {
+		const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);
+		const liquidationPrice = +currentPosition.liquidationPrice;
+		const currentPrice = await this.binance.getCurrentPrice(this.pair, this.mode);
+
+		const orders = await this.binance.getCurrentOrders(this.pair, this.mode);
+		const martinGalaOrders = orders.filter((order) =>
+			['LIMIT', 'STOP_MARKET'].includes(order.type),
+		);
+
+		if (
+			martinGalaOrders.length === 1 &&
+			martinGalaOrders[0].type === 'STOP_MARKET' &&
+			!this.stopLossIsNextSent
+		) {
+			// TODO: Activate emergency protocol
+			this.stopLossIsNextSent = true;
+			this.sendNotification('CRITICAL: Next order is the Stop Loss.');
+			this.error('CRITICAL: Next order is the Stop Loss.');
+		}
+
+		if (!martinGalaOrders.length) {
+			// TODO: We could have an strategy here to reduce losses, kind of a trailing, or reduce the benefit desired, etc
+			this.sendNotification('CRITICAL: No more martin gala orders found.');
+			this.error('CRITICAL: No more martin gala orders found.');
+			return;
+		}
+
+		let closest = martinGalaOrders[0];
+		martinGalaOrders.forEach((order) => {
+			if (Math.abs(+order.price - currentPrice) < Math.abs(+closest.price - currentPrice)) {
+				closest = order;
+			}
+		});
+
+		if (
+			(this.configuration.direction === 'BUY' && closest.price < liquidationPrice) ||
+			(this.configuration.direction === 'SELL' && closest.price > liquidationPrice)
+		) {
+			this.log(
+				'Careful! We are moving a martin gala order because it was further than the liquidation price.',
+			);
+			this.sendNotification(
+				'CAREFUL! We are moving a martin gala order because it was further than the liquidation price.',
+			);
+			const multiplier = this.configuration.direction === 'BUY' ? 1.001 : 0.999;
+			const newPrice = round(liquidationPrice * multiplier, this.pricePrecision);
+			await this.binance.deleteOrder(this.pair, this.mode, closest.orderId);
+
+			await this.createMartinGalaOrders(
+				[
+					{
+						side: closest.side,
+						type: closest.origType,
+						quantity: closest.origQty,
+						price: newPrice,
+						reduceOnly: `${closest.reduceOnly}`,
+					},
+				],
+				this.pair,
+			);
+		}
+	}
+
 	private async assertMartinGalaOrdersAreInPlace(): Promise<boolean> {
 		const orders = await this.binance.getCurrentOrders(this.pair, this.mode);
 		const position = await this.binance.getCurrentPosition(this.pair, this.mode);
@@ -150,8 +221,7 @@ export class MartinGala extends AbstractStrategy {
 		const reBuys = gafasSetup
 			.filter((order) => order.numero.indexOf('SL') === -1)
 			.map((order) => ({
-				// TODO: Antes funcionaba con 4, no me gusta tener solo 3 aqui. El trailing si que va con 4...
-				price: round(+order.precio, 3),
+				price: round(+order.precio, this.pricePrecision),
 				quantity: round(+order.monedas, this.precision),
 				type: 'LIMIT',
 				side: side === 'BUY' ? 'BUY' : 'SELL',
@@ -163,8 +233,7 @@ export class MartinGala extends AbstractStrategy {
 		return [
 			...reBuys,
 			{
-				// TODO: Does this one needs to be stop_market?
-				price: round(+stop.precio, 4),
+				price: round(+stop.precio, this.pricePrecision),
 				quantity: round(+stop.monedas, this.precision),
 				type: 'STOP_MARKET',
 				side: side === 'BUY' ? 'SELL' : 'BUY',
@@ -225,12 +294,14 @@ export class MartinGala extends AbstractStrategy {
 		if (orders.length === 0) {
 			this.log('Resetting pendingOrders array.');
 			this.pendingOrders = [];
+			this.stopLossIsNextSent = false;
 			return false;
 		}
 
 		this.log('Removing past order and resetting pendingOrders array.');
 		await this.binance.deleteAllOrders(this.pair, this.mode);
 		this.pendingOrders = [];
+		this.stopLossIsNextSent = false;
 		return false;
 	}
 
@@ -292,7 +363,7 @@ export class MartinGala extends AbstractStrategy {
 				this.configuration.mode,
 				this.configuration.direction,
 				entrySize,
-				round(activationPrice, 4),
+				round(activationPrice, this.pricePrecision),
 				'TRAILING_STOP_MARKET',
 				'false',
 				this.configuration.entry.callbackPercentage,
@@ -303,16 +374,14 @@ export class MartinGala extends AbstractStrategy {
 	private async calculateEntrySize(currentPrice: number) {
 		const balance = await this.binance.getCurrentBalance(this.reference, this.mode);
 
-		const precision = await this.binance.getPrecision(this.pair, this.mode);
-
 		let amountToBuy = round(
 			(((balance * this.configuration.startSize) / 100) * this.configuration.leverage) /
 				currentPrice,
-			precision,
+			this.precision,
 		);
 
 		while (amountToBuy * currentPrice < 5) {
-			amountToBuy = round(amountToBuy + Math.pow(10, -precision), precision);
+			amountToBuy = round(amountToBuy + Math.pow(10, -this.precision), this.precision);
 		}
 		return amountToBuy;
 	}
@@ -377,7 +446,7 @@ export class MartinGala extends AbstractStrategy {
 			this.configuration.mode,
 			direction,
 			positionAmt,
-			round(profitPrice, 4),
+			round(profitPrice, this.pricePrecision),
 			'TRAILING_STOP_MARKET',
 			'true',
 			this.configuration.profitCallbackPercentage,

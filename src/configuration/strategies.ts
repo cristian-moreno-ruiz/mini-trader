@@ -100,10 +100,10 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		restart: true,
 
-		startSize: 5,
-		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
-		stopUsd: 10,
+		startSize: 3,
+		reBuyAmountPercentage: 60,
+		reBuySpacingPercentage: 2.2,
+		stopUsd: 8,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.2,
 
@@ -117,8 +117,8 @@ export const strategies: StrategyConfiguration[] = [
 		restart: true,
 
 		startSize: 5,
-		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
+		reBuyAmountPercentage: 60,
+		reBuySpacingPercentage: 2.4,
 		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
@@ -134,19 +134,19 @@ export const strategies: StrategyConfiguration[] = [
 
 		startSize: 5,
 		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
-		stopUsd: 10,
-		profitPercentage: 8,
+		reBuySpacingPercentage: 1.8,
+		stopUsd: 9,
+		profitPercentage: 7,
 		profitCallbackPercentage: 0.3,
 
-		leverage: 10,
+		leverage: 15,
 		direction: 'BUY',
 		symbol: 'BTC/BUSD',
-		entry: {
-			price: undefined,
-			activationPercentage: 0.2,
-			callbackPercentage: 0.1,
-		},
+		// entry: {
+		// 	price: undefined,
+		// 	activationPercentage: 0.2,
+		// 	callbackPercentage: 0.1,
+		// },
 	},
 	{
 		strategy: 'MartinGala',
@@ -154,8 +154,8 @@ export const strategies: StrategyConfiguration[] = [
 		restart: true,
 
 		startSize: 5,
-		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 2,
+		reBuyAmountPercentage: 50,
+		reBuySpacingPercentage: 2.1,
 		stopUsd: 10,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,

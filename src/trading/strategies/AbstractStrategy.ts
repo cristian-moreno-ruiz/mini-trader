@@ -1,11 +1,13 @@
+import { Slack } from '../../providers/slack';
 import { StrategyConfiguration } from './types';
 
 export abstract class AbstractStrategy {
 	private summary: string;
+	private slack = new Slack();
 	public configuration: StrategyConfiguration | undefined;
 
-	constructor(symbol: string) {
-		this.summary = `[${symbol}] => `;
+	constructor(public pair: string) {
+		this.summary = `[${pair}] => `;
 	}
 
 	public abstract trade(): Promise<boolean>;
@@ -25,6 +27,14 @@ export abstract class AbstractStrategy {
 			console.error(this.summary + JSON.stringify(message));
 		} else {
 			console.error(this.summary + message?.toString());
+		}
+	}
+
+	public async sendNotification(message: string): Promise<void> {
+		if (typeof message === 'object' || !Array.isArray(message)) {
+			await this.slack.sendMessage(this.summary + JSON.stringify(message));
+		} else {
+			await this.slack.sendMessage(this.summary + message?.toString());
 		}
 	}
 }
