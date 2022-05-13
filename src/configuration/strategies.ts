@@ -132,7 +132,7 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		restart: true,
 
-		startSize: 5,
+		startSize: 3,
 		reBuyAmountPercentage: 60,
 		reBuySpacingPercentage: 2.5,
 		stopUsd: 50,
@@ -153,7 +153,7 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		restart: true,
 
-		startSize: 5,
+		startSize: 2,
 		reBuyAmountPercentage: 62,
 		reBuySpacingPercentage: 4.3,
 		stopUsd: 19,
