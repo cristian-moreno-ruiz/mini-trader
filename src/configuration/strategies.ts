@@ -133,15 +133,15 @@ export const strategies: StrategyConfiguration[] = [
 		restart: true,
 
 		startSize: 5,
-		reBuyAmountPercentage: 40,
-		reBuySpacingPercentage: 1.8,
-		stopUsd: 9,
+		reBuyAmountPercentage: 60,
+		reBuySpacingPercentage: 2.5,
+		stopUsd: 50,
 		profitPercentage: 7,
 		profitCallbackPercentage: 0.3,
 
 		leverage: 15,
 		direction: 'BUY',
-		symbol: 'BTC/BUSD',
+		symbol: 'BTC/USDT',
 		// entry: {
 		// 	price: undefined,
 		// 	activationPercentage: 0.2,
@@ -154,9 +154,9 @@ export const strategies: StrategyConfiguration[] = [
 		restart: true,
 
 		startSize: 5,
-		reBuyAmountPercentage: 50,
-		reBuySpacingPercentage: 2.1,
-		stopUsd: 10,
+		reBuyAmountPercentage: 62,
+		reBuySpacingPercentage: 4.3,
+		stopUsd: 19,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
 
