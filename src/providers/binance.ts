@@ -178,7 +178,10 @@ export class Binance {
 				(s) => s.pair === pair && s.contractType === 'PERPETUAL',
 			);
 			// @ts-expect-error precision not present in types
-			return symbol?.pricePrecision as number;
+			const tickSize = +symbol?.filters.find((f) => f.filterType === 'PRICE_FILTER')?.tickSize;
+
+			const decimalPlaces = Math.abs(Math.round(Math.log(tickSize) / Math.log(10)));
+			return decimalPlaces !== Infinity ? decimalPlaces : 0;
 		}
 		return 0;
 	}

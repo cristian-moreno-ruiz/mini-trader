@@ -180,7 +180,7 @@ export class MartinGala extends AbstractStrategy {
 			this.log(
 				'Careful! We are moving a martin gala order because it was further than the liquidation price.',
 			);
-			this.sendNotification(
+			await this.sendNotification(
 				'CAREFUL! We are moving a martin gala order because it was further than the liquidation price.',
 			);
 			const multiplier = this.configuration.direction === 'BUY' ? 1.001 : 0.999;
@@ -373,10 +373,16 @@ export class MartinGala extends AbstractStrategy {
 
 	private async calculateEntrySize(currentPrice: number) {
 		const balance = await this.binance.getCurrentBalance(this.reference, this.mode);
+		const entrySize = this.configuration.entryPercentage
+			? (balance * this.configuration.entryPercentage) / 100
+			: this.configuration.entrySize;
+
+		if (!entrySize) {
+			throw new Error('Entry size is not defined');
+		}
 
 		let amountToBuy = round(
-			(((balance * this.configuration.startSize) / 100) * this.configuration.leverage) /
-				currentPrice,
+			(entrySize * this.configuration.leverage) / currentPrice,
 			this.precision,
 		);
 

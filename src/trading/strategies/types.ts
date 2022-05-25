@@ -36,7 +36,8 @@ export interface MartinGalaConfiguration {
 	profitPercentage: number;
 	profitCallbackPercentage: number;
 
-	entryPercentage: number;
+	entrySize?: number;
+	entryPercentage?: number;
 	direction: Direction;
 	reBuyAmountPercentage: number;
 	reBuySpacingPercentage: number;

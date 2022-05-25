@@ -1,4 +1,4 @@
-import { StrategyConfiguration } from '../trading/strategies/types';
+import { Direction, StrategyConfiguration } from '../trading/strategies/types';
 
 export const strategies: StrategyConfiguration[] = [
 	// {
@@ -132,7 +132,7 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		restart: true,
 
-		startSize: 3,
+		entrySize: 0.001,
 		reBuyAmountPercentage: 60,
 		reBuySpacingPercentage: 2.5,
 		stopUsd: 50,
@@ -140,7 +140,7 @@ export const strategies: StrategyConfiguration[] = [
 		profitCallbackPercentage: 0.3,
 
 		leverage: 15,
-		direction: 'BUY',
+		direction: Direction.BUY,
 		symbol: 'BTC/USDT',
 		// entry: {
 		// 	price: undefined,
@@ -153,15 +153,15 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		restart: true,
 
-		startSize: 2,
+		entrySize: 0.004,
 		reBuyAmountPercentage: 62,
 		reBuySpacingPercentage: 4.3,
 		stopUsd: 19,
 		profitPercentage: 8,
 		profitCallbackPercentage: 0.3,
 
-		leverage: 10,
-		direction: 'SELL',
+		leverage: 15,
+		direction: Direction.SELL,
 		symbol: 'ETH/BUSD',
 
 		// entry: {
