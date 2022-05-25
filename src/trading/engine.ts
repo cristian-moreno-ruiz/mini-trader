@@ -1,12 +1,16 @@
 import { settings, strategies } from '../configuration';
 import { Slack } from '../providers/slack';
 import { AbstractStrategy } from './strategies/AbstractStrategy';
+import { Bollinger } from './strategies/Bollinger';
 import { BuyLowSellHigh } from './strategies/BuyLowSellHigh';
+import { Custom } from './strategies/CustomStrategy';
 import { MartinGala } from './strategies/MartinGala';
 
 const engines: Record<string, new (_) => AbstractStrategy> = {
 	BuyLowSellHigh,
 	MartinGala,
+	Bollinger,
+	Custom,
 };
 
 const slack = new Slack();
@@ -14,7 +18,9 @@ const slack = new Slack();
 export async function execute(): Promise<void> {
 	const strats = strategies.map((strat) => new engines[strat.strategy](strat));
 	await slack.sendMessage(
-		`Starting ${strats.length} trades: ${strats.map((strat) => strat.pair).join(', ')}`,
+		`Starting ${strats.length} trades: ${strats
+			.map((strat) => `${strat.pair} (${strat.configuration?.strategy})`)
+			.join(', ')}`,
 	);
 
 	const promises = strats.map(async (strategy) => {

@@ -15,26 +15,24 @@ export abstract class AbstractStrategy {
 	public abstract init(): Promise<void>;
 
 	public log(message: any): void {
-		if (typeof message === 'object' || !Array.isArray(message)) {
-			console.log(this.summary + JSON.stringify(message));
-		} else {
-			console.log(this.summary + message?.toString());
-		}
+		console.log(this.buildMessage(message));
 	}
 
 	public error(message: any): void {
-		if (typeof message === 'object' || !Array.isArray(message)) {
-			console.error(this.summary + JSON.stringify(message));
-		} else {
-			console.error(this.summary + message?.toString());
-		}
+		console.error(this.buildMessage(message));
 	}
 
 	public async sendNotification(message: string): Promise<void> {
-		if (typeof message === 'object' || !Array.isArray(message)) {
-			await this.slack.sendMessage(this.summary + JSON.stringify(message));
+		await this.slack.sendMessage(this.buildMessage(message));
+	}
+
+	private buildMessage(message: any): string {
+		if (typeof message === 'string') {
+			return this.summary + message;
+		} else if (typeof message === 'object' || !Array.isArray(message)) {
+			return this.summary + JSON.stringify(message);
 		} else {
-			await this.slack.sendMessage(this.summary + message?.toString());
+			return this.summary + message?.toString();
 		}
 	}
 }

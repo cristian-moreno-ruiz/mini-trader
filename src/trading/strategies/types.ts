@@ -1,8 +1,16 @@
 export type Mode = 'FUTURES' | 'SPOT';
+export enum Direction {
+	BUY = 'BUY',
+	SELL = 'SELL',
+}
 
-type Strategy = 'BuyLowSellHigh' | 'MartinGala';
+type Strategy = 'BuyLowSellHigh' | 'MartinGala' | 'Bollinger' | 'Custom';
 
-export type StrategyConfiguration = BuyLowSellHighConfiguration | MartinGalaConfiguration;
+export type StrategyConfiguration =
+	| BuyLowSellHighConfiguration
+	| MartinGalaConfiguration
+	| BollingerConfiguration
+	| CustomConfiguration;
 
 export interface BuyLowSellHighConfiguration {
 	// diffAbsolute: 500, // Price difference (absolute) to consider next move
@@ -28,8 +36,8 @@ export interface MartinGalaConfiguration {
 	profitPercentage: number;
 	profitCallbackPercentage: number;
 
-	startSize: number;
-	direction: 'BUY' | 'SELL';
+	entryPercentage: number;
+	direction: Direction;
 	reBuyAmountPercentage: number;
 	reBuySpacingPercentage: number;
 	stopUsd: number;
@@ -40,3 +48,79 @@ export interface MartinGalaConfiguration {
 		callbackPercentage?: number;
 	};
 }
+
+// TODO: Deprecate this one in favour of custom
+export interface BollingerConfiguration {
+	strategy: Strategy;
+	mode: Mode;
+	restart?: boolean;
+
+	symbol: string;
+	leverage: number;
+	// profitPercentage: number;
+	// profitCallbackPercentage: number;
+
+	entrySize: number;
+
+	interval:
+		| '1m'
+		| '5m'
+		| '15m'
+		| '30m'
+		| '1h'
+		| '2h'
+		| '4h'
+		| '6h'
+		| '8h'
+		| '12h'
+		| '1d'
+		| '3d'
+		| '1w'
+		| '1M';
+
+	// reBuyAmountPercentage: number;
+	// reBuySpacingPercentage: number;
+	// stopUsd: number;
+
+	// entry?: {
+	// 	price?: number;
+	// 	activationPercentage?: number;
+	// 	callbackPercentage?: number;
+	// };
+}
+
+export interface CustomConfiguration {
+	strategy: Strategy;
+	name: string;
+	description: string;
+	mode: Mode;
+	leverage: number;
+	symbol: string;
+	interval: string;
+
+	stages: any[];
+}
+
+export interface StrategyDefinition {
+	description: string;
+	stages: StageDefinition[];
+}
+
+export type StageDefinition = LoadStageDefinition | ExecuteStageDefinition;
+
+interface LoadStageDefinition {
+	type: 'load';
+	variables: {
+		name: string;
+		source: 'binance' | 'taapi' | 'local';
+		input?: any;
+		eval?: string;
+	}[];
+}
+
+interface ExecuteStageDefinition {
+	type: 'execute';
+	actions: any;
+}
+
+export type Source = 'binance' | 'taapi' | 'local';
