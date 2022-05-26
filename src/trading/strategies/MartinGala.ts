@@ -104,6 +104,7 @@ export class MartinGala extends AbstractStrategy {
 	private async createMartinGalaOrdersIfNeeded() {
 		// From this point on, we can be sure we have an open position.
 		const inPlace = await this.assertMartinGalaOrdersAreInPlace();
+		this.log(`inPlace: ${inPlace}, pendingOrders: ${this.pendingOrders.length}`);
 		if (!inPlace && !this.pendingOrders.length) {
 			this.log('Got things to do:');
 
