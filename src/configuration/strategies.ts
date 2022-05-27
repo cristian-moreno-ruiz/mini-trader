@@ -20,7 +20,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	symbol: 'XRP/BUSD',
 	// 	leverage: 15,
 
-	// 	startSize: 1,
+	// 	entryPercentage: 1,
 	// 	direction: 'BUY',
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 2,
@@ -30,7 +30,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	strategy: 'MartinGala',
 	// 	mode: 'FUTURES',
 
-	// 	startSize: 1,
+	// 	entryPercentage: 1,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
@@ -44,7 +44,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	strategy: 'MartinGala',
 	// 	mode: 'FUTURES',
 
-	// 	startSize: 1,
+	// 	entryPercentage: 1,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
@@ -61,7 +61,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	mode: 'FUTURES',
 	// 	restart: true,
 
-	// 	startSize: 5,
+	// 	entryPercentage: 5,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 1.5,
 	// 	stopUsd: 5,
@@ -78,7 +78,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	mode: 'FUTURES',
 	// 	restart: true,
 
-	// 	startSize: 5,
+	// 	entryPercentage: 5,
 	// 	reBuyAmountPercentage: 40,
 	// 	reBuySpacingPercentage: 2,
 	// 	stopUsd: 10,
@@ -100,7 +100,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	mode: 'FUTURES',
 	// 	restart: true,
 
-	// 	startSize: 3,
+	// 	entryPercentage: 3,
 	// 	reBuyAmountPercentage: 60,
 	// 	reBuySpacingPercentage: 2.2,
 	// 	stopUsd: 8,
@@ -116,7 +116,7 @@ export const strategies: StrategyConfiguration[] = [
 	// 	mode: 'FUTURES',
 	// 	restart: true,
 
-	// 	startSize: 5,
+	// 	entryPercentage: 5,
 	// 	reBuyAmountPercentage: 60,
 	// 	reBuySpacingPercentage: 2.4,
 	// 	stopUsd: 10,
@@ -142,11 +142,6 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 15,
 		direction: Direction.BUY,
 		symbol: 'BTC/USDT',
-		// entry: {
-		// 	price: undefined,
-		// 	activationPercentage: 0.2,
-		// 	callbackPercentage: 0.1,
-		// },
 	},
 	{
 		strategy: 'MartinGala',
@@ -163,11 +158,53 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 15,
 		direction: Direction.SELL,
 		symbol: 'ETH/BUSD',
-
-		// entry: {
-		// 	price: undefined,
-		// 	activationPercentage: 0.2,
-		// 	callbackPercentage: 0.1,
-		// },
 	},
+	// {
+	// 	strategy: 'Bollinger',
+	// 	mode: 'FUTURES',
+	// 	restart: true,
+
+	// 	leverage: 15,
+	// 	symbol: 'ETH/USDT',
+
+	// 	entrySize: 0.003,
+
+	// 	interval: '15m',
+	// },
+	// {
+	// 	strategy: 'Custom',
+	// 	name: 'BollingerRsiAdx',
+	// 	description:
+	// 		'Buy Entry Signal (price = bollinger lower band && RSI < 20 && ADX > 32' +
+	// 		'Sell Entry Signal (price = bollinger upper band && RSI > 80 && ADX > 32',
+	// 	mode: 'FUTURES',
+	// 	leverage: 15,
+	// 	symbol: 'ETH/USDT',
+	// 	interval: '5m',
+	// 	entrySize: 0.003,
+	// },
+	// {
+	// 	strategy: 'Custom',
+	// 	name: 'DoubleSuperTrend',
+	// 	mode: 'FUTURES',
+	// 	restart: true,
+
+	// 	leverage: 15,
+	// 	direction: Direction.SELL,
+	// 	symbol: 'ETH/USDT',
+
+	// 	interval: '5m',
+	// },
+	// {
+	// 	strategy: 'Custom',
+	// 	name: 'MacdFlow',
+	// 	mode: 'FUTURES',
+	// 	restart: true,
+
+	// 	leverage: 15,
+	// 	// direction: Direction.SELL,
+	// 	symbol: 'ETH/USDT',
+
+	// 	interval: '5m',
+	// },
 ];

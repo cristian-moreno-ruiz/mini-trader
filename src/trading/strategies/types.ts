@@ -58,8 +58,6 @@ export interface BollingerConfiguration {
 
 	symbol: string;
 	leverage: number;
-	// profitPercentage: number;
-	// profitCallbackPercentage: number;
 
 	entrySize: number;
 
@@ -78,50 +76,13 @@ export interface BollingerConfiguration {
 		| '3d'
 		| '1w'
 		| '1M';
-
-	// reBuyAmountPercentage: number;
-	// reBuySpacingPercentage: number;
-	// stopUsd: number;
-
-	// entry?: {
-	// 	price?: number;
-	// 	activationPercentage?: number;
-	// 	callbackPercentage?: number;
-	// };
 }
 
 export interface CustomConfiguration {
 	strategy: Strategy;
 	name: string;
-	description: string;
 	mode: Mode;
 	leverage: number;
 	symbol: string;
 	interval: string;
-
-	stages: any[];
 }
-
-export interface StrategyDefinition {
-	description: string;
-	stages: StageDefinition[];
-}
-
-export type StageDefinition = LoadStageDefinition | ExecuteStageDefinition;
-
-interface LoadStageDefinition {
-	type: 'load';
-	variables: {
-		name: string;
-		source: 'binance' | 'taapi' | 'local';
-		input?: any;
-		eval?: string;
-	}[];
-}
-
-interface ExecuteStageDefinition {
-	type: 'execute';
-	actions: any;
-}
-
-export type Source = 'binance' | 'taapi' | 'local';

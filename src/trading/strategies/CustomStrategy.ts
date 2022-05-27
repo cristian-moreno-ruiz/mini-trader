@@ -1,12 +1,20 @@
 import { Binance } from '../../providers/binance';
 import { Taapi } from '../../providers/taapi';
 import { AbstractStrategy } from './AbstractStrategy';
-import { CustomConfiguration, Mode, Source } from './types';
+import { CustomConfiguration, Mode } from './types';
+import {
+	LoadInputType,
+	MultipleActionStageDefinition,
+	SingleActionStageDefinition,
+	Source,
+	StageDefinition,
+	StrategyDefinition,
+} from './custom/types';
 import * as Strategies from './custom';
 import Mustache from 'mustache';
 
 export class Custom extends AbstractStrategy {
-	public configuration: CustomConfiguration;
+	public configuration: CustomConfiguration & StrategyDefinition;
 
 	/**
 	 * Sources
@@ -68,81 +76,99 @@ export class Custom extends AbstractStrategy {
 
 		const stages = this.configuration.stages;
 
-		for (const stage of stages) {
-			await this[stage.type](stage);
-		}
-
+		await this.execute(stages);
 		return true;
 	}
 
 	/**
-	 * STAGES:
-	 * 		- load
-	 * 		- execute
+	 * Iterates through each defined Stage.
 	 */
-
-	public async load(stage: any): Promise<void> {
-		const variables: any[] = stage.variables;
-		for (const variable of variables) {
-			this.variables[variable.name] = await this.request(variable.source, variable.input);
-		}
-		return;
-	}
-
-	public async execute(stage: any): Promise<void> {
-		const actions: any[] = stage.actions;
-		for (const current of actions) {
+	public async execute(stages: StageDefinition[]): Promise<void> {
+		for (const current of stages) {
 			if (current.condition) {
-				if (!this.evaluateCondition(current.condition)) {
+				const parsed = this.render(current.condition);
+				if (!this.evaluateCondition(parsed)) {
 					continue;
 				}
 			}
 			if (current.name) {
 				this.log(`Executing action: ${current.name}`);
 			}
-			// TODO: Replace use of eval with something like <%%.*%%>.
-			// TODO: Add support for multiple inputs (using objects & arrays)
-			// const input = this.render(current.input);
+
 			let input;
 			if (current.input) {
 				input = this.render(current.input);
 			}
-			if (current.action) {
-				await this[current.action](input);
-			} else if (current.actions) {
-				await this.execute(current);
+			if ((current as SingleActionStageDefinition).action) {
+				await this[(current as SingleActionStageDefinition).action](input);
+			} else if ((current as MultipleActionStageDefinition).actions) {
+				await this.execute((current as MultipleActionStageDefinition).actions);
 			}
 		}
 	}
 
 	/**
-	 * Internal Helpers.
+	 * POSSIBLE ACTIONS:
+	 * 		- log
+	 * 		- sendNotification
+	 * 		- load
+	 * 		- persist
 	 */
 
-	private async request(source: Source, input: any): Promise<any> {
+	public async load(input: LoadInputType): Promise<void> {
+		const variables = Array.isArray(input) ? input : [input];
+
+		for (const variable of variables) {
+			this.variables[variable.name] = await this.request(variable.source, variable.data);
+		}
+		return;
+	}
+
+	public async persist(input: LoadInputType): Promise<void> {
+		const variables = Array.isArray(input) ? input : [input];
+
+		for (const variable of variables) {
+			this.storage[variable.name] = await this.request(variable.source, variable.data);
+		}
+		return;
+	}
+
+	/**
+	 * Internal Helpers.
+	 * These methods are not intended to be called by the Strategy templates, but are instead
+	 * helpers for completing the public methods functionality.
+	 */
+
+	private async request(source: Source, data: any): Promise<any> {
 		switch (source) {
 			case 'local': {
-				return input;
+				return this.render(data);
 			}
 			case 'binance': {
-				const params = !Array.isArray(input.params) ? [input.params] : input.params;
-				return this.binance[input.method](this.pair, this.mode, ...params);
+				const params = !Array.isArray(data.params) ? [data.params] : data.params;
+				return this.binance[data.method](this.pair, this.mode, ...params);
 			}
 			case 'taapi': {
 				return this.taapi.getIndicator(
-					input.indicator,
+					data.indicator,
 					this.pair,
 					this.configuration.interval,
-					input.params,
+					data.params,
 				);
 			}
 		}
 	}
 
+	/**
+	 * Evaluates a piece of code using `eval`.
+	 */
 	private evaluateCondition(condition: string): Promise<boolean> {
 		return eval(condition);
 	}
 
+	/**
+	 * Renders a template using Mustache.
+	 */
 	private render(input: any): any {
 		let template: string;
 		if (typeof input === 'string') {
@@ -164,10 +190,11 @@ export class Custom extends AbstractStrategy {
 		} catch {
 			return rendered;
 		}
-		// // TODO: If strigify works, use it and return it as an object.
-		// return rendered;
 	}
 
+	/**
+	 * Load some of the built-in variables.
+	 */
 	private async loadBuiltInVariables(): Promise<void> {
 		const currentPrice = await this.binance.getCurrentPrice(this.pair, this.mode);
 		const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);

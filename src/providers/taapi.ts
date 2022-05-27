@@ -1,16 +1,55 @@
 import { differenceInSeconds } from 'date-fns';
 import * as taapi from 'taapi';
 
-const secondsBetweenRequests = 15;
+const secondsBetweenRequests = 16;
+
+const keys = [
+	process.env.TAAPI_API_KEY_1,
+	// process.env.TAAPI_API_KEY_2,
+	// process.env.TAAPI_API_KEY_3,
+	// process.env.TAAPI_API_KEY_4,
+	// process.env.TAAPI_API_KEY_5,
+];
+
+const pool = {
+	clients: keys.map((key) => ({
+		client: taapi.client(key),
+		queue: 0,
+		lastRequest: new Date(),
+	})),
+	next: 0,
+};
 
 export class Taapi {
 	private client;
 	private exchange = 'binance';
-	private lastRequest: Date | undefined;
-	private queue = 0;
+	// private lastRequest: Date | undefined;
+	// private queue = 0;
 
-	constructor() {
-		this.client = taapi.client(process.env.TAAPI_API_KEY);
+	private async getClient() {
+		const index = pool.next;
+		const client = pool.clients[index];
+		pool.next = (index + 1) % pool.clients.length;
+		client.queue++;
+
+		if (
+			client.queue > 1 ||
+			(client.lastRequest &&
+				differenceInSeconds(new Date(), client.lastRequest) < secondsBetweenRequests)
+		) {
+			const waitTime = Math.abs(
+				(client.queue - 1) * secondsBetweenRequests +
+					(differenceInSeconds(new Date(), client.lastRequest as Date) - secondsBetweenRequests) *
+						1000,
+			);
+			await new Promise((resolve) => setTimeout(resolve, waitTime));
+		}
+		client.lastRequest = new Date();
+		return [client.client, index];
+	}
+
+	private decreaseQueue(index: number) {
+		pool.clients[index].queue--;
 	}
 
 	/**
@@ -41,27 +80,10 @@ export class Taapi {
 		interval: string,
 		params: any,
 	): Promise<Result<T>> {
-		let queue = false;
-		if (
-			this.queue > 0 ||
-			(this.lastRequest &&
-				differenceInSeconds(new Date(), this.lastRequest) < secondsBetweenRequests)
-		) {
-			this.queue++;
-			queue = true;
-			const waitTime = Math.abs(
-				this.queue * secondsBetweenRequests +
-					(differenceInSeconds(new Date(), this.lastRequest as Date) - secondsBetweenRequests) *
-						1000,
-			);
-			await new Promise((resolve) => setTimeout(resolve, waitTime));
-		}
-		const data = await this.client.getIndicator(indicator, this.exchange, pair, interval, params);
-		this.lastRequest = new Date();
-		if (queue) {
-			this.queue--;
-		}
+		const [client, index] = await this.getClient();
+		const data = await client.getIndicator(indicator, this.exchange, pair, interval, params);
 
+		this.decreaseQueue(index);
 		return data;
 	}
 }
