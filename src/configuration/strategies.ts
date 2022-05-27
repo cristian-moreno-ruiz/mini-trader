@@ -195,16 +195,16 @@ export const strategies: StrategyConfiguration[] = [
 
 	// 	interval: '5m',
 	// },
-	// {
-	// 	strategy: 'Custom',
-	// 	name: 'MacdFlow',
-	// 	mode: 'FUTURES',
-	// 	restart: true,
+	{
+		strategy: 'Custom',
+		name: 'MacdFlow',
+		mode: 'FUTURES',
+		restart: true,
 
-	// 	leverage: 15,
-	// 	// direction: Direction.SELL,
-	// 	symbol: 'ETH/USDT',
+		leverage: 15,
+		// direction: Direction.SELL,
+		symbol: 'ETH/USDT',
 
-	// 	interval: '5m',
-	// },
+		interval: '5m',
+	},
 ];
