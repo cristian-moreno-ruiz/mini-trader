@@ -4,8 +4,10 @@ export interface StrategyDefinition {
 }
 
 export type StageDefinition =
-	| LoadStageDefinition
+	| FetchStageDefinition
 	| SingleActionStageDefinition
+	| CalculateStageDefinition
+	| CreateOrderStageDefinition
 	| MultipleActionStageDefinition;
 
 interface AbstractStageDefinition {
@@ -15,30 +17,30 @@ interface AbstractStageDefinition {
 
 /**
  * Action types:
- * 	- load
+ * 	- fetch
  * 	- persist
  */
-interface LoadStageDefinition extends AbstractStageDefinition {
-	action: 'load' | 'persist';
-	input: LoadInputType | LoadInputType[];
+interface FetchStageDefinition extends AbstractStageDefinition {
+	action: 'fetch' | 'persist';
+	input: FetchInputType | FetchInputType[];
 }
 
-export type LoadInputType = LoadBinanceInput | LoadTaapiInput | LoadLocalInput;
+export type FetchInputType = FetchBinanceInput | FetchTaapiInput | FetchLocalInput;
 
-interface LoadInput {
-	name: string;
+interface FetchInput {
+	save?: string;
 }
 
-interface LoadBinanceInput extends LoadInput {
+interface FetchBinanceInput extends FetchInput {
 	source: 'binance';
 	data: {
 		// TODO: More concrete
 		method: string;
-		params: any[];
+		params?: any[];
 	};
 }
 
-interface LoadTaapiInput extends LoadInput {
+interface FetchTaapiInput extends FetchInput {
 	source: 'taapi';
 	data: {
 		indicator: string;
@@ -46,9 +48,42 @@ interface LoadTaapiInput extends LoadInput {
 	};
 }
 
-interface LoadLocalInput extends LoadInput {
+interface FetchLocalInput extends FetchInput {
 	source: 'local';
 	data: string | number | boolean | Record<string, string | number> | any[];
+}
+
+/**
+ * Action types:
+ * 	- calculate
+ */
+export interface CalculateInput {
+	// source? TODO:
+	save: string;
+	data: string;
+}
+
+interface CalculateStageDefinition extends AbstractStageDefinition {
+	action: 'calculate';
+	input: CalculateInput | CalculateInput[];
+}
+
+/**
+ * Action types:
+ * 	- createOrderIfNotExists
+ */
+interface CreateOrderStageDefinition extends AbstractStageDefinition {
+	action: 'createOrderIfNotExists';
+	input: CreateOrderInput;
+}
+
+export interface CreateOrderInput {
+	side: 'BUY' | 'SELL';
+	quantity?: string | number;
+	price?: string | number;
+	type: 'LIMIT' | 'MARKET';
+	reduceOnly?: boolean;
+	callback?: number;
 }
 
 /**

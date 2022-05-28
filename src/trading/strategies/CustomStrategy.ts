@@ -3,7 +3,9 @@ import { Taapi } from '../../providers/taapi';
 import { AbstractStrategy } from './AbstractStrategy';
 import { CustomConfiguration, Mode } from './types';
 import {
-	LoadInputType,
+	CalculateInput,
+	CreateOrderInput,
+	FetchInputType,
 	MultipleActionStageDefinition,
 	SingleActionStageDefinition,
 	Source,
@@ -35,7 +37,7 @@ export class Custom extends AbstractStrategy {
 	};
 
 	/**
-	 * Variables Loaded during `load` stage.
+	 * Built-in Variables Loaded at the beginning.
 	 */
 	private builtin: any = {};
 
@@ -45,7 +47,7 @@ export class Custom extends AbstractStrategy {
 	private storage: any = {};
 
 	/**
-	 * Variables Loaded during `load` stage.
+	 * Variables Loaded during `fetch` stage.
 	 */
 	private variables: any = {};
 
@@ -111,25 +113,82 @@ export class Custom extends AbstractStrategy {
 	 * POSSIBLE ACTIONS:
 	 * 		- log
 	 * 		- sendNotification
-	 * 		- load
+	 * 		- fetch
 	 * 		- persist
+	 * 		- calculate
 	 */
 
-	public async load(input: LoadInputType): Promise<void> {
-		const variables = Array.isArray(input) ? input : [input];
+	public async fetch(input: FetchInputType): Promise<void> {
+		const variables: FetchInputType[] = Array.isArray(input) ? input : [input];
+
+		// TODO: Maybe here also render????
 
 		for (const variable of variables) {
-			this.variables[variable.name] = await this.request(variable.source, variable.data);
+			const result = await this.request(variable.source, variable.data);
+			if (variable.save) {
+				this.variables[variable.save] = result;
+			}
 		}
 		return;
 	}
 
-	public async persist(input: LoadInputType): Promise<void> {
-		const variables = Array.isArray(input) ? input : [input];
+	public async persist(input: FetchInputType): Promise<void> {
+		const variables: FetchInputType[] = Array.isArray(input) ? input : [input];
 
 		for (const variable of variables) {
-			this.storage[variable.name] = await this.request(variable.source, variable.data);
+			const result = await this.request(variable.source, variable.data);
+			if (variable.save) {
+				this.storage[variable.save] = result;
+			}
 		}
+		return;
+	}
+
+	public async calculate(input: CalculateInput): Promise<void> {
+		const variables: CalculateInput[] = Array.isArray(input) ? input : [input];
+
+		for (const variable of variables) {
+			const rendered = await this.render(variable.data);
+			if (variable.save) {
+				this.variables[variable.save] = eval(rendered);
+			}
+		}
+		return;
+	}
+
+	public async createOrderIfNotExists(args: CreateOrderInput): Promise<void> {
+		// if (quanti)
+
+		let exists = false;
+		if (args.type !== 'MARKET') {
+			exists = this.builtin?.currentOrders?.find(
+				(order) =>
+					order.origQty === args.quantity?.toString() &&
+					(order.price === args.price || order.stopPrice === args.price) &&
+					order.type === args.type &&
+					order.side === args.side,
+			);
+		}
+
+		if (exists) {
+			return;
+		}
+
+		let reduceOnly;
+		if (args.reduceOnly) {
+			reduceOnly = '' + args.reduceOnly;
+		}
+
+		await this.binance.createOrder(
+			this.pair,
+			this.mode,
+			args.side,
+			args.quantity ? +args.quantity : undefined,
+			args.price ? +args.price : undefined,
+			args.type,
+			reduceOnly,
+			args.callback,
+		);
 		return;
 	}
 
@@ -146,7 +205,11 @@ export class Custom extends AbstractStrategy {
 			}
 			case 'binance': {
 				const params = !Array.isArray(data.params) ? [data.params] : data.params;
-				return this.binance[data.method](this.pair, this.mode, ...params);
+				if (params.length) {
+					return this.binance[data.method](this.pair, this.mode, ...params);
+				} else {
+					return this.binance[data.method](this.pair, this.mode);
+				}
 			}
 			case 'taapi': {
 				return this.taapi.getIndicator(
@@ -204,6 +267,7 @@ export class Custom extends AbstractStrategy {
 		this.pricePrecision = await this.binance.getPricePrecision(this.pair, this.mode);
 
 		this.builtin = {
+			configuration: this.configuration,
 			symbol: this.symbol,
 			reference: this.reference,
 			mode: this.mode,

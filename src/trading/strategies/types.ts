@@ -85,4 +85,6 @@ export interface CustomConfiguration {
 	leverage: number;
 	symbol: string;
 	interval: string;
+	stop: number;
+	profit: number;
 }

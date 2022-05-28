@@ -204,6 +204,10 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 15,
 		// direction: Direction.SELL,
 		symbol: 'ETH/USDT',
+		entrySize: 0.003,
+
+		stop: 0.5,
+		profit: 1,
 
 		interval: '5m',
 	},

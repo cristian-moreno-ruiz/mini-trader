@@ -49,6 +49,7 @@ export class Taapi {
 	}
 
 	private decreaseQueue(index: number) {
+		pool.clients[index].lastRequest = new Date();
 		pool.clients[index].queue--;
 	}
 
@@ -81,7 +82,13 @@ export class Taapi {
 		params: any,
 	): Promise<Result<T>> {
 		const [client, index] = await this.getClient();
-		const data = await client.getIndicator(indicator, this.exchange, pair, interval, params);
+
+		const data = await client
+			.getIndicator(indicator, this.exchange, pair, interval, params)
+			.catch((err) => {
+				this.decreaseQueue(index);
+				throw err;
+			});
 
 		this.decreaseQueue(index);
 		return data;

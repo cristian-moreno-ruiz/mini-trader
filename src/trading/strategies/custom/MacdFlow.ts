@@ -7,17 +7,44 @@ export const MacdFlow: StrategyDefinition = {
 			/**
 			 * 1. Fetch Technical analysis data.
 			 */
-			action: 'load',
+			action: 'fetch',
 			input: [
 				{
-					name: 'macd',
+					save: 'macd',
 					source: 'taapi',
 					data: { indicator: 'macd', params: { backtracks: 20 } },
 				},
 				{
-					name: 'candles',
+					save: 'candles',
 					source: 'taapi',
-					data: { indicator: 'candles', params: { backtracks: 20 } },
+					data: { indicator: 'candle', params: { backtracks: 20 } },
+				},
+			],
+		},
+		// FIXME: This stage is only for testing purposes.
+		{
+			actions: [
+				{
+					// Calculate SL
+					action: 'calculate',
+					input: [
+						{
+							save: 'sl',
+							data: '+{{currentPosition.entryPrice}} + (+{{currentPosition.positionAmt}} > 0 ? -1 : 1) * ((+{{configuration.stop}}/100) * +{{currentPrice}})',
+						},
+						// {
+						// Calculate TP1
+						// },
+						// {
+						// Calculate TP2
+						// },
+					],
+				},
+
+				{
+					// Log SL, TP1 and TP2
+					action: 'log',
+					input: 'SL: {{sl}}; TP1: {{tp1}}; TP2: {{tp2}}',
 				},
 			],
 		},
@@ -44,11 +71,14 @@ export const MacdFlow: StrategyDefinition = {
 						'&& {{macd.3.valueMACDHist}} > {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} < {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} < {{macd.0.valueMACDHist}}',
 					actions: [
 						// Place BUY flag.
-						{ action: 'load', input: { name: 'buy', source: 'local', data: true } },
+						// TODO: Remove in favour of the next one
+						{ action: 'fetch', input: { save: 'buy', source: 'local', data: true } },
+						{ action: 'fetch', input: { save: 'signal', source: 'local', data: 'BUY' } },
+						{ action: 'fetch', input: { save: 'opposite', source: 'local', data: 'SELL' } },
 						// Save price at MACD minimum.
 						{
 							action: 'persist',
-							input: { name: 'priceOnLastValley', source: 'local', data: '{{candles.2.low}}' },
+							input: { save: 'priceOnLastValley', source: 'local', data: '{{candles.2.low}}' },
 						},
 					],
 				},
@@ -64,25 +94,87 @@ export const MacdFlow: StrategyDefinition = {
 						'&& {{macd.3.valueMACDHist}} < {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} > {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} > {{macd.0.valueMACDHist}}',
 					actions: [
 						// Place SELL flag.
-						{ action: 'load', input: { name: 'sell', source: 'local', data: true } },
+						// TODO: Remove in favour of the next one
+						{ action: 'fetch', input: { save: 'sell', source: 'local', data: true } },
+						{ action: 'fetch', input: { save: 'signal', source: 'local', data: 'SELL' } },
+						{ action: 'fetch', input: { save: 'opposite', source: 'local', data: 'BUY' } },
+
 						// Save price at MACD maximum.
 						{
 							action: 'persist',
-							input: { name: 'priceOnLastPeak', source: 'local', data: '{{candles.2.high}}' },
+							input: { save: 'priceOnLastPeak', source: 'local', data: '{{candles.2.high}}' },
 						},
 					],
 				},
 			],
 		},
 		{
+			/**
+			 * 3. If position is open, ensure TPs and SL are set. Also, check if there is a signal to close the position.
+			 */
+			name: 'Position is open.',
+			condition: '+this.builtin.currentPosition.positionAmt !== 0',
+			actions: [
+				{
+					name: 'Processing SELL Signal (exit Long)',
+					// TODO: This is not super nice
+					condition: '"{{sell}}" == "true" && {{currentPosition.positionAmt}} > 0',
+					actions: [
+						// Send Notification
+						{ action: 'sendNotification', input: 'Closing Long @ {{currentPrice}}' },
+						// Close Long position
+						{
+							action: 'fetch',
+							input: {
+								source: 'binance',
+								data: {
+									method: 'createOrder',
+									params: ['SELL', '{{configuration.entrySize}}', undefined, 'MARKET', 'true'],
+								},
+							},
+						},
+					],
+				},
+				{
+					name: 'Processing BUY Signal (exit Short)',
+					// TODO: This is not super nice
+					condition: '"{{buy}}" == "true" && {{currentPosition.positionAmt}} < 0',
+					actions: [
+						// Send Notification
+						{ action: 'sendNotification', input: 'Closing Short @ {{currentPrice}}' },
+						// Close Long position
+						{
+							action: 'fetch',
+							input: {
+								source: 'binance',
+								data: {
+									method: 'createOrder',
+									params: ['BUY', '{{configuration.entrySize}}', undefined, 'MARKET', 'true'],
+								},
+							},
+						},
+					],
+				},
+				// FIXME: This is in progress
+				// Ensure TPs and SL are set.
+				// {
+				// 	action: 'createOrderIfNotExists',
+				// 	input: [
+				// 	]
+				// },
+				// * At any time, if MACD goes in the opposite direction, close the position (specially if in profit).
+				// 1. Place Stop Loss if not present
+				// 2. Place TP1 if not present
+				// 3. If TP1 reached, place TP2 if not present, and move SL to entry
+				// 4. If TP2 reached, move SL to TP1 (if necessary) and determine if need to exit position
+			],
+		},
+		{
 			name: 'Position is not open.',
 			condition: '+this.builtin.currentPosition.positionAmt === 0',
 			actions: [
-				// TODO:
-				// {
-				// 	name: 'Remove old orders if any.',
-				// },
-
+				// Remove old orders if any
+				{ action: 'fetch', input: { source: 'binance', data: { method: 'deleteAllOrders' } } },
 				{
 					name: 'Processing SELL Entry Signal',
 					condition: '{{sell}}',
@@ -91,7 +183,17 @@ export const MacdFlow: StrategyDefinition = {
 							// Send Notification
 							action: 'sendNotification',
 							input:
-								'SELL Entry Signal @ {{priceOnLastPeak}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
+								'SELL Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
+						},
+						{
+							action: 'fetch',
+							input: {
+								source: 'binance',
+								data: {
+									method: 'createOrder',
+									params: ['SELL', '{{configuration.entrySize}}', undefined, 'MARKET', 'false'],
+								},
+							},
 						},
 						// TODO: Create entry in market
 						{
@@ -112,6 +214,16 @@ export const MacdFlow: StrategyDefinition = {
 							input:
 								'BUY Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastPeak}}, TP1 is halfway)',
 						},
+						{
+							action: 'fetch',
+							input: {
+								source: 'binance',
+								data: {
+									method: 'createOrder',
+									params: ['BUY', '{{configuration.entrySize}}', undefined, 'MARKET', 'false'],
+								},
+							},
+						},
 						// TODO: Create entry in market
 						{
 							// TODO: Maybe this is the confirmation that we entered successfully (if not crashed)
@@ -121,17 +233,6 @@ export const MacdFlow: StrategyDefinition = {
 						},
 					],
 				},
-			],
-		},
-		{
-			name: 'Position is open.',
-			condition: '+this.builtin.currentPosition.positionAmt !== 0',
-			actions: [
-				// * At any time, if MACD goes in the opposite direction, close the position (specially if in profit).
-				// 1. Place Stop Loss if not present
-				// 2. Place TP1 if not present
-				// 3. If TP1 reached, place TP2 if not present, and move SL to entry
-				// 4. If TP2 reached, move SL to TP1 (if necessary) and determine if need to exit position
 			],
 		},
 	],

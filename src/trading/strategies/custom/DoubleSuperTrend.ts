@@ -5,26 +5,26 @@ export const DoubleSuperTrend: StrategyDefinition = {
 		'Long term super trends signals trend, the short term super trend shows entries when it switch to same direction',
 	stages: [
 		{
-			action: 'load',
+			action: 'fetch',
 			input: [
 				{
-					name: 'supertrendLT',
+					save: 'supertrendLT',
 					source: 'taapi',
 					data: { indicator: 'supertrend', params: { backtracks: 20, period: 20, multiplier: 5 } },
 				},
 				{
-					name: 'supertrendST',
+					save: 'supertrendST',
 					source: 'taapi',
 					data: { indicator: 'supertrend', params: { backtracks: 20, period: 8, multiplier: 3 } },
 					// input: { indicator: 'supertrend', params: { backtracks: 20, period: 10, multiplier: 3 } },
 				},
 				{
-					name: 'dmi',
+					save: 'dmi',
 					source: 'taapi',
 					data: { indicator: 'dmi', params: { optInTimePeriod: 14, backtracks: 3 } },
 				},
 				{
-					name: 'atr',
+					save: 'atr',
 					source: 'taapi',
 					data: { indicator: 'atr', params: { optInTimePeriod: 14, backtracks: 3 } },
 				},

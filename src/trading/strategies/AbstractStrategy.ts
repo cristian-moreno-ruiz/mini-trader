@@ -29,8 +29,12 @@ export abstract class AbstractStrategy {
 	private buildMessage(message: any): string {
 		if (typeof message === 'string') {
 			return this.summary + message;
-		} else if (typeof message === 'object' || !Array.isArray(message)) {
-			return this.summary + JSON.stringify(message);
+		} else if (typeof message === 'object' || Array.isArray(message)) {
+			let str = JSON.stringify(message);
+			if (str === '{}' && message.toString) {
+				str = message.toString();
+			}
+			return this.summary + str;
 		} else {
 			return this.summary + message?.toString();
 		}
