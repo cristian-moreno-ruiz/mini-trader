@@ -81,7 +81,7 @@ export interface CreateOrderInput {
 	side: 'BUY' | 'SELL';
 	quantity?: string | number;
 	price?: string | number;
-	type: 'LIMIT' | 'MARKET';
+	type: 'LIMIT' | 'MARKET' | 'STOP_MARKET';
 	reduceOnly?: boolean;
 	callback?: number;
 }

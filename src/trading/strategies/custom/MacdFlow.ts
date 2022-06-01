@@ -9,42 +9,11 @@ export const MacdFlow: StrategyDefinition = {
 			 */
 			action: 'fetch',
 			input: [
-				{
-					save: 'macd',
-					source: 'taapi',
-					data: { indicator: 'macd', params: { backtracks: 20 } },
-				},
+				{ save: 'macd', source: 'taapi', data: { indicator: 'macd', params: { backtracks: 20 } } },
 				{
 					save: 'candles',
 					source: 'taapi',
 					data: { indicator: 'candle', params: { backtracks: 20 } },
-				},
-			],
-		},
-		// FIXME: This stage is only for testing purposes.
-		{
-			actions: [
-				{
-					// Calculate SL
-					action: 'calculate',
-					input: [
-						{
-							save: 'sl',
-							data: '+{{currentPosition.entryPrice}} + (+{{currentPosition.positionAmt}} > 0 ? -1 : 1) * ((+{{configuration.stop}}/100) * +{{currentPrice}})',
-						},
-						// {
-						// Calculate TP1
-						// },
-						// {
-						// Calculate TP2
-						// },
-					],
-				},
-
-				{
-					// Log SL, TP1 and TP2
-					action: 'log',
-					input: 'SL: {{sl}}; TP1: {{tp1}}; TP2: {{tp2}}',
 				},
 			],
 		},
@@ -61,22 +30,35 @@ export const MacdFlow: StrategyDefinition = {
 				},
 				{
 					/**
-					 * BUY Signal Detected.
+					 * Potential BUY (Valley) Detected.
 					 */
-					name: 'BUY Signal Detected',
+					name: 'Valley Detected',
 					condition:
-						// MACD is below 0 during last 4 periods
-						'{{macd.3.valueMACDHist}} < 0 && {{macd.2.valueMACDHist}} < 0 && {{macd.1.valueMACDHist}} < 0 && {{macd.0.valueMACDHist}} < 0' +
-						// MACD has done a local min
-						'&& {{macd.3.valueMACDHist}} > {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} < {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} < {{macd.0.valueMACDHist}}',
+						'{{macd.3.valueMACDHist}} > {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} < {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} < {{macd.0.valueMACDHist}}',
+
 					actions: [
 						// Place BUY flag.
-						// TODO: Remove in favour of the next one
-						{ action: 'fetch', input: { save: 'buy', source: 'local', data: true } },
-						{ action: 'fetch', input: { save: 'signal', source: 'local', data: 'BUY' } },
+						{ action: 'fetch', input: { save: 'detected', source: 'local', data: 'BUY' } },
 						{ action: 'fetch', input: { save: 'opposite', source: 'local', data: 'SELL' } },
-						// Save price at MACD minimum.
+						// If crossovers are set, check if they are met for both entry and exit.
 						{
+							condition:
+								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} < {{configuration.entryCrossover}}',
+							action: 'fetch',
+							input: { save: 'entrySignal', source: 'local', data: 'BUY' },
+						},
+						{
+							condition:
+								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < {{configuration.exitCrossover}}',
+
+							action: 'fetch',
+							input: [
+								{ save: 'exitSignal', source: 'local', data: 'BUY' },
+								{ save: 'exitSide', source: 'local', data: 'SELL' },
+							],
+						},
+						{
+							// Save price at MACD minimum.
 							action: 'persist',
 							input: { save: 'priceOnLastValley', source: 'local', data: '{{candles.2.low}}' },
 						},
@@ -84,20 +66,32 @@ export const MacdFlow: StrategyDefinition = {
 				},
 				{
 					/**
-					 * SELL Signal Detected.
+					 * Potential SELL (Peak) Detected.
 					 */
-					name: 'SELL Signal Detected',
+					name: 'Peak Detected',
 					condition:
-						// MACD is above 0 during last 6 periods
-						'{{macd.5.valueMACDHist}} > 0 && {{macd.4.valueMACDHist}} > 0 && {{macd.3.valueMACDHist}} > 0 && {{macd.2.valueMACDHist}} > 0 && {{macd.1.valueMACDHist}} > 0 && {{macd.0.valueMACDHist}} > 0' +
 						// MACD has done a local max
-						'&& {{macd.3.valueMACDHist}} < {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} > {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} > {{macd.0.valueMACDHist}}',
+						'{{macd.3.valueMACDHist}} < {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} > {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} > {{macd.0.valueMACDHist}}',
 					actions: [
 						// Place SELL flag.
-						// TODO: Remove in favour of the next one
-						{ action: 'fetch', input: { save: 'sell', source: 'local', data: true } },
-						{ action: 'fetch', input: { save: 'signal', source: 'local', data: 'SELL' } },
+						{ action: 'fetch', input: { save: 'detected', source: 'local', data: 'SELL' } },
 						{ action: 'fetch', input: { save: 'opposite', source: 'local', data: 'BUY' } },
+						// If crossovers are set, check if they are met for both entry and exit.
+						{
+							condition:
+								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} > {{configuration.entryCrossover}}',
+							action: 'fetch',
+							input: { save: 'entrySignal', source: 'local', data: 'SELL' },
+						},
+						{
+							condition:
+								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} > {{configuration.exitCrossover}}',
+							action: 'fetch',
+							input: [
+								{ save: 'exitSignal', source: 'local', data: 'SELL' },
+								{ save: 'exitSide', source: 'local', data: 'BUY' },
+							],
+						},
 
 						// Save price at MACD maximum.
 						{
@@ -110,47 +104,95 @@ export const MacdFlow: StrategyDefinition = {
 		},
 		{
 			/**
-			 * 3. If position is open, ensure TPs and SL are set. Also, check if there is a signal to close the position.
+			 * 3. If position is open, perform re-entries, exits and ensure TPs and SL are set
 			 */
 			name: 'Position is open.',
-			condition: '+this.builtin.currentPosition.positionAmt !== 0',
+			condition: '{{currentPosition.positionAmt}} !== 0',
 			actions: [
 				{
-					name: 'Processing SELL Signal (exit Long)',
-					// TODO: This is not super nice
-					condition: '"{{sell}}" == "true" && {{currentPosition.positionAmt}} > 0',
+					name: 'Processing Exit Signal',
+					condition:
+						'"{{exitSignal}}" === "SELL" && {{currentPosition.positionAmt}} > 0 || "{{exitSignal}}" === "BUY" && {{currentPosition.positionAmt}} < 0',
 					actions: [
-						// Send Notification
-						{ action: 'sendNotification', input: 'Closing Long @ {{currentPrice}}' },
-						// Close Long position
 						{
-							action: 'fetch',
+							// Send Notification
+							action: 'sendNotification',
+							input:
+								'Exiting {{opposite}} position @ {{currentPrice}} [{{currentPosition.entryPrice}} -> {{currentPrice}}]',
+						},
+						{
+							// Close position
+							action: 'createOrderIfNotExists',
 							input: {
-								source: 'binance',
-								data: {
-									method: 'createOrder',
-									params: ['SELL', '{{configuration.entrySize}}', undefined, 'MARKET', 'true'],
-								},
+								side: '{{exitSide}}' as 'BUY' | 'SELL',
+								type: 'MARKET',
+								quantity: '{{currentPosition.positionAmt}}',
+								reduceOnly: true,
 							},
 						},
 					],
 				},
 				{
-					name: 'Processing BUY Signal (exit Short)',
-					// TODO: This is not super nice
-					condition: '"{{buy}}" == "true" && {{currentPosition.positionAmt}} < 0',
+					name: 'Processing potential re-entry',
+					condition:
+						'{{configuration.reEntries.percentageSize}} > 0 && Math.abs({{currentPosition.positionAmt}}) < {{configuration.reEntries.maxPosition}}',
 					actions: [
-						// Send Notification
-						{ action: 'sendNotification', input: 'Closing Short @ {{currentPrice}}' },
-						// Close Long position
 						{
-							action: 'fetch',
+							condition: '{{currentPosition.positionAmt}} > 0',
+							action: 'calculate',
 							input: {
-								source: 'binance',
-								data: {
-									method: 'createOrder',
-									params: ['BUY', '{{configuration.entrySize}}', undefined, 'MARKET', 'true'],
+								save: 'reEntrySize',
+								data:
+									'(utils.percentage({{currentPosition.positionAmt}}, {{configuration.reEntries.percentageSize}})) > {{configuration.reEntries.maxPosition}}' +
+									'? (utils.percentage({{currentPosition.positionAmt}}, {{configuration.reEntries.percentageSize}}))' +
+									': {{configuration.reEntries.maxPosition}} - Math.abs({{currentPosition.positionAmt}})',
+							},
+						},
+						{
+							// Send Notification
+							action: 'sendNotification',
+							input:
+								'{{entrySignal}} Re-Entry @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
+						},
+						{
+							// Re-entry
+							action: 'createOrderIfNotExists',
+							input: {
+								side: '{{entrySignal}}' as 'BUY' | 'SELL',
+								type: 'MARKET',
+								quantity: '{{reEntrySize}}',
+								reduceOnly: false,
+							},
+						},
+						// Remove old orders, as they are no longer valid because position amount changed.
+						{ action: 'fetch', input: { source: 'binance', data: { method: 'deleteAllOrders' } } },
+					],
+				},
+				{
+					// Place stop loss if not present.
+					name: 'Ensure Stop Loss in place',
+					actions: [
+						{
+							action: 'calculate',
+							input: [
+								{
+									save: 'stopSide',
+									data: '{{currentPosition.positionAmt}} > 0 ? "SELL" : "BUY"',
 								},
+								{
+									save: 'stopPrice',
+									data: 'utils.percentageIncrease({{currentPosition.entryPrice}}, -1 * Math.sign({{currentPosition.positionAmt}}) * {{configuration.stop}})',
+								},
+							],
+						},
+						{
+							action: 'createOrderIfNotExists',
+							input: {
+								side: '{{stopSide}}' as 'BUY' | 'SELL',
+								quantity: '{{currentPosition.positionAmt}}',
+								price: '{{stopPrice}}',
+								type: 'STOP_MARKET',
+								reduceOnly: true,
 							},
 						},
 					],
@@ -170,66 +212,32 @@ export const MacdFlow: StrategyDefinition = {
 			],
 		},
 		{
+			/**
+			 * 4. If position is not open, check if we need to enter a position.
+			 */
 			name: 'Position is not open.',
-			condition: '+this.builtin.currentPosition.positionAmt === 0',
+			condition: '{{currentPosition.positionAmt}} === 0',
 			actions: [
 				// Remove old orders if any
 				{ action: 'fetch', input: { source: 'binance', data: { method: 'deleteAllOrders' } } },
 				{
-					name: 'Processing SELL Entry Signal',
-					condition: '{{sell}}',
+					name: 'Processing Entry Signal',
+					condition: '"{{entrySignal}}" !== ""',
 					actions: [
 						{
 							// Send Notification
 							action: 'sendNotification',
 							input:
-								'SELL Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
+								'{{entrySignal}} Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
 						},
 						{
-							action: 'fetch',
+							action: 'createOrderIfNotExists',
 							input: {
-								source: 'binance',
-								data: {
-									method: 'createOrder',
-									params: ['SELL', '{{configuration.entrySize}}', undefined, 'MARKET', 'false'],
-								},
+								side: '{{entrySignal}}' as 'BUY' | 'SELL',
+								type: 'MARKET',
+								quantity: '{{configuration.entrySize}}',
+								reduceOnly: false,
 							},
-						},
-						// TODO: Create entry in market
-						{
-							// TODO: Maybe this is the confirmation that we entered successfully (if not crashed)
-							condition: '{{priceOnLastValley}}',
-							action: 'sendNotification',
-							input: 'We would have entered successfully.',
-						},
-					],
-				},
-				{
-					name: 'Processing BUY Entry Signal',
-					condition: '{{buy}}',
-					actions: [
-						{
-							// Send Notification
-							action: 'sendNotification',
-							input:
-								'BUY Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastPeak}}, TP1 is halfway)',
-						},
-						{
-							action: 'fetch',
-							input: {
-								source: 'binance',
-								data: {
-									method: 'createOrder',
-									params: ['BUY', '{{configuration.entrySize}}', undefined, 'MARKET', 'false'],
-								},
-							},
-						},
-						// TODO: Create entry in market
-						{
-							// TODO: Maybe this is the confirmation that we entered successfully (if not crashed)
-							condition: '{{priceOnLastPeak}}',
-							action: 'sendNotification',
-							input: 'We would have entered successfully.',
 						},
 					],
 				},

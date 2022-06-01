@@ -55,6 +55,7 @@ export interface BollingerConfiguration {
 	strategy: Strategy;
 	mode: Mode;
 	restart?: boolean;
+	name: 'Bollinger';
 
 	symbol: string;
 	leverage: number;
@@ -78,13 +79,64 @@ export interface BollingerConfiguration {
 		| '1M';
 }
 
-export interface CustomConfiguration {
+// export interface CustomConfiguration {
+// 	strategy: Strategy;
+// 	name: string;
+// 	mode: Mode;
+// 	leverage: number;
+// 	symbol: string;
+// 	interval: string;
+// 	stop: number;
+// 	profit: number;
+// }
+
+export type CustomConfiguration = MacdFlowConfiguration;
+
+export interface MacdFlowConfiguration {
 	strategy: Strategy;
-	name: string;
+	name: 'MacdFlow';
 	mode: Mode;
 	leverage: number;
+	/**
+	 * The symbol to trade. E.g: 'BTC/USDT'.
+	 */
 	symbol: string;
+	/**
+	 * Interval to perform the analysis on, and search for entries.
+	 */
 	interval: string;
+	/**
+	 * Stop Loss percentage (no leverage taken into account).
+	 */
 	stop: number;
+	/**
+	 * Profit percentage for TP1 (no leverage taken into account).
+	 */
 	profit: number;
+	/**
+	 * The size of a single entry.
+	 */
+	entrySize: number;
+
+	/**
+	 * In order to be considered as a signal, the price must cross over this value (for a SELL) or fall below it (for a BUY).
+	 */
+	entryCrossover: number | false;
+	/**
+	 * In order to be considered as a signal, the price must cross over this value (for a SELL) or fall below it (for a BUY).
+	 */
+	exitCrossover: number | false;
+	/**
+	 * If a signal in the same direction triggers again, allow a new entry (increase the position).
+	 */
+	reEntries: {
+		/**
+		 * Percentage of the current position to be added.
+		 */
+		percentageSize: number;
+		/**
+		 * Allow re-entries up to this position size.
+		 */
+		maxPosition: number;
+	};
 }

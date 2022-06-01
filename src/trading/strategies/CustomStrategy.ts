@@ -1,6 +1,7 @@
 import { Binance } from '../../providers/binance';
 import { Taapi } from '../../providers/taapi';
 import { AbstractStrategy } from './AbstractStrategy';
+import safeEval from 'safe-eval';
 import { CustomConfiguration, Mode } from './types';
 import {
 	CalculateInput,
@@ -14,6 +15,16 @@ import {
 } from './custom/types';
 import * as Strategies from './custom';
 import Mustache from 'mustache';
+import { round } from '../../utils';
+
+export const utils = {
+	percentage: (value: number, percentage: number): number => {
+		return (value * percentage) / 100;
+	},
+	percentageIncrease: (value: number, percentage: number): number => {
+		return value * (1 + percentage / 100);
+	},
+};
 
 export class Custom extends AbstractStrategy {
 	public configuration: CustomConfiguration & StrategyDefinition;
@@ -71,6 +82,9 @@ export class Custom extends AbstractStrategy {
 	}
 
 	public async trade(): Promise<boolean> {
+		this.precision = await this.binance.getPrecision(this.pair, this.mode);
+		this.pricePrecision = await this.binance.getPricePrecision(this.pair, this.mode);
+
 		await this.loadBuiltInVariables();
 
 		// 1. Reset variables
@@ -89,7 +103,7 @@ export class Custom extends AbstractStrategy {
 		for (const current of stages) {
 			if (current.condition) {
 				const parsed = this.render(current.condition);
-				if (!this.evaluateCondition(parsed)) {
+				if (!this.evaluate(parsed)) {
 					continue;
 				}
 			}
@@ -150,18 +164,24 @@ export class Custom extends AbstractStrategy {
 		for (const variable of variables) {
 			const rendered = await this.render(variable.data);
 			if (variable.save) {
-				this.variables[variable.save] = eval(rendered);
+				this.variables[variable.save] = this.evaluate(rendered);
 			}
 		}
 		return;
 	}
 
 	public async createOrderIfNotExists(args: CreateOrderInput): Promise<void> {
-		// if (quanti)
+		if (args.price) {
+			args.price = `${round(+args.price, this.pricePrecision)}`;
+		}
+
+		if (args.quantity) {
+			args.quantity = `${round(+args.quantity, this.precision)}`;
+		}
 
 		let exists = false;
 		if (args.type !== 'MARKET') {
-			exists = this.builtin?.currentOrders?.find(
+			exists = this.builtin?.openOrders?.find(
 				(order) =>
 					order.origQty === args.quantity?.toString() &&
 					(order.price === args.price || order.stopPrice === args.price) &&
@@ -189,6 +209,8 @@ export class Custom extends AbstractStrategy {
 			reduceOnly,
 			args.callback,
 		);
+
+		await this.loadBuiltInVariables();
 		return;
 	}
 
@@ -225,8 +247,18 @@ export class Custom extends AbstractStrategy {
 	/**
 	 * Evaluates a piece of code using `eval`.
 	 */
-	private evaluateCondition(condition: string): Promise<boolean> {
-		return eval(condition);
+	private evaluate(statement: string): unknown {
+		if (!statement) {
+			return false;
+		}
+		try {
+			const context = {
+				utils,
+			};
+			return safeEval(statement, context);
+		} catch (err) {
+			throw new Error(`Failed to evaluate statement: ${statement}. Error: ${err}`);
+		}
 	}
 
 	/**
@@ -262,9 +294,6 @@ export class Custom extends AbstractStrategy {
 		const currentPrice = await this.binance.getCurrentPrice(this.pair, this.mode);
 		const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);
 		const openOrders = await this.binance.getCurrentOrders(this.pair, this.mode);
-
-		this.precision = await this.binance.getPrecision(this.pair, this.mode);
-		this.pricePrecision = await this.binance.getPricePrecision(this.pair, this.mode);
 
 		this.builtin = {
 			configuration: this.configuration,
