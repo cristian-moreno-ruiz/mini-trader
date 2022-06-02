@@ -15,7 +15,7 @@ const pool = {
 	clients: keys.map((key) => ({
 		client: taapi.client(key),
 		queue: 0,
-		lastRequest: new Date(),
+		lastRequest: new Date(Date.now() - 20000).getTime(),
 	})),
 	next: 0,
 };
@@ -35,21 +35,20 @@ export class Taapi {
 		if (
 			client.queue > 1 ||
 			(client.lastRequest &&
-				differenceInSeconds(new Date(), client.lastRequest) < secondsBetweenRequests)
+				differenceInSeconds(Date.now(), client.lastRequest) < secondsBetweenRequests)
 		) {
 			const waitTime = Math.abs(
 				(client.queue - 1) * secondsBetweenRequests +
-					(differenceInSeconds(new Date(), client.lastRequest as Date) - secondsBetweenRequests) *
-						1000,
+					(differenceInSeconds(Date.now(), client.lastRequest) - secondsBetweenRequests) * 1000,
 			);
 			await new Promise((resolve) => setTimeout(resolve, waitTime));
 		}
-		client.lastRequest = new Date();
+		client.lastRequest = Date.now();
 		return [client.client, index];
 	}
 
 	private decreaseQueue(index: number) {
-		pool.clients[index].lastRequest = new Date();
+		pool.clients[index].lastRequest = Date.now();
 		pool.clients[index].queue--;
 	}
 

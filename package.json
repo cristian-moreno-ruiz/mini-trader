@@ -9,12 +9,12 @@
     "dev": "nodemon src/index.ts",
     "debug": "nodemon --inspect src/index.ts",
     "start": "node dist/index.js",
-    "test": "npx jest"
+    "test": "jest"
   },
   "author": "Cristian Moreno",
   "license": "ISC",
   "devDependencies": {
-    "@types/jest": "^26.0.23",
+    "@types/jest": "^26.0.24",
     "@typescript-eslint/eslint-plugin": "^4.24.0",
     "@typescript-eslint/parser": "^4.24.0",
     "eslint": "^7.26.0",

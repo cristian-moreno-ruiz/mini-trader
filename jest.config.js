@@ -9,4 +9,8 @@ module.exports = {
 	moduleFileExtensions: ['ts', 'js', 'json'],
 	preset: 'ts-jest',
 	verbose: false,
+	roots: ['<rootDir>'],
+	modulePaths: ['<rootDir>'],
+	moduleDirectories: ['node_modules'],
+	setupFilesAfterEnv: ['./jest-setup.js'],
 };

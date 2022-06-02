@@ -52,10 +52,7 @@ export const MacdFlow: StrategyDefinition = {
 								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < {{configuration.exitCrossover}}',
 
 							action: 'fetch',
-							input: [
-								{ save: 'exitSignal', source: 'local', data: 'BUY' },
-								{ save: 'exitSide', source: 'local', data: 'SELL' },
-							],
+							input: { save: 'exitSignal', source: 'local', data: 'BUY' },
 						},
 						{
 							// Save price at MACD minimum.
@@ -87,10 +84,7 @@ export const MacdFlow: StrategyDefinition = {
 							condition:
 								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} > {{configuration.exitCrossover}}',
 							action: 'fetch',
-							input: [
-								{ save: 'exitSignal', source: 'local', data: 'SELL' },
-								{ save: 'exitSide', source: 'local', data: 'BUY' },
-							],
+							input: { save: 'exitSignal', source: 'local', data: 'SELL' },
 						},
 
 						// Save price at MACD maximum.
@@ -121,12 +115,16 @@ export const MacdFlow: StrategyDefinition = {
 								'Exiting {{opposite}} position @ {{currentPrice}} [{{currentPosition.entryPrice}} -> {{currentPrice}}]',
 						},
 						{
+							action: 'calculate',
+							input: { save: 'quantity', data: 'Math.abs({{currentPosition.positionAmt}})' },
+						},
+						{
 							// Close position
 							action: 'createOrderIfNotExists',
 							input: {
-								side: '{{exitSide}}' as 'BUY' | 'SELL',
+								side: '{{exitSignal}}' as 'BUY' | 'SELL',
 								type: 'MARKET',
-								quantity: '{{currentPosition.positionAmt}}',
+								quantity: '{{quantity}}',
 								reduceOnly: true,
 							},
 						},
@@ -135,7 +133,7 @@ export const MacdFlow: StrategyDefinition = {
 				{
 					name: 'Processing potential re-entry',
 					condition:
-						'{{configuration.reEntries.percentageSize}} > 0 && Math.abs({{currentPosition.positionAmt}}) < {{configuration.reEntries.maxPosition}}',
+						'"{{configuration.reEntries.percentageSize}}" && +"{{configuration.reEntries.percentageSize}}" > 0 && Math.abs({{currentPosition.positionAmt}}) < +"{{configuration.reEntries.maxPosition}}"',
 					actions: [
 						{
 							condition: '{{currentPosition.positionAmt}} > 0',
@@ -171,6 +169,7 @@ export const MacdFlow: StrategyDefinition = {
 				{
 					// Place stop loss if not present.
 					name: 'Ensure Stop Loss in place',
+					condition: '"{{configuration.stop}}"',
 					actions: [
 						{
 							action: 'calculate',

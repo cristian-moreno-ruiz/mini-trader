@@ -108,11 +108,11 @@ export interface MacdFlowConfiguration {
 	/**
 	 * Stop Loss percentage (no leverage taken into account).
 	 */
-	stop: number;
+	stop?: number;
 	/**
 	 * Profit percentage for TP1 (no leverage taken into account).
 	 */
-	profit: number;
+	profit?: number;
 	/**
 	 * The size of a single entry.
 	 */
@@ -129,7 +129,7 @@ export interface MacdFlowConfiguration {
 	/**
 	 * If a signal in the same direction triggers again, allow a new entry (increase the position).
 	 */
-	reEntries: {
+	reEntries?: {
 		/**
 		 * Percentage of the current position to be added.
 		 */
