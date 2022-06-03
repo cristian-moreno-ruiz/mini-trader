@@ -90,11 +90,11 @@ export interface BollingerConfiguration {
 // 	profit: number;
 // }
 
-export type CustomConfiguration = MacdFlowConfiguration;
+export type CustomConfiguration = MacdHistogramConfiguration;
 
-export interface MacdFlowConfiguration {
+export interface MacdHistogramConfiguration {
 	strategy: Strategy;
-	name: 'MacdFlow';
+	name: 'MacdHistogram';
 	mode: Mode;
 	leverage: number;
 	/**

@@ -1,5 +1,5 @@
 import { Custom } from '../CustomStrategy';
-import { MacdFlowConfiguration } from '../types';
+import { MacdHistogramConfiguration } from '../types';
 import { binanceMockSettings, binanceMock } from '../../../../__mocks__/binance-api-node';
 import { taapiMockSettings } from '../../../../__mocks__/taapi';
 import short, { SUUID } from 'short-uuid';
@@ -13,7 +13,7 @@ Date.now = jest.fn().mockImplementation(() => {
 	return lastDate;
 });
 
-describe('MacdFlow', () => {
+describe('MacdHistogram', () => {
 	let engine: Custom;
 
 	describe('Trade with minimum configuration', () => {
@@ -22,7 +22,7 @@ describe('MacdFlow', () => {
 
 			const strategy = {
 				strategy: 'Custom',
-				name: 'MacdFlow',
+				name: 'MacdHistogram',
 				mode: 'FUTURES',
 				leverage: 15,
 				symbol: 'XRP/USDT',
@@ -30,7 +30,7 @@ describe('MacdFlow', () => {
 				entryCrossover: false,
 				exitCrossover: false,
 				interval: '1m',
-			} as MacdFlowConfiguration;
+			} as MacdHistogramConfiguration;
 
 			engine = new Custom(strategy);
 		});
@@ -158,7 +158,7 @@ describe('MacdFlow', () => {
 		beforeEach(() => {
 			const strategy = {
 				strategy: 'Custom',
-				name: 'MacdFlow',
+				name: 'MacdHistogram',
 				mode: 'FUTURES',
 				leverage: 15,
 				symbol: 'XRP/USDT',
@@ -172,7 +172,7 @@ describe('MacdFlow', () => {
 					percentageSize: 100,
 					maxPosition: 30,
 				},
-			} as MacdFlowConfiguration;
+			} as MacdHistogramConfiguration;
 
 			engine = new Custom(strategy);
 		});

@@ -1,6 +1,6 @@
 import { StrategyDefinition } from './types';
 
-export const MacdFlow: StrategyDefinition = {
+export const MacdHistogram: StrategyDefinition = {
 	description: 'Buy on MACD valley and sell on MACD peak.',
 	stages: [
 		{
