@@ -119,11 +119,13 @@ export interface MacdHistogramConfiguration {
 	entrySize: number;
 
 	/**
-	 * In order to be considered as a signal, the price must cross over this value (for a SELL) or fall below it (for a BUY).
+	 * In order to be considered as an entry signal, the price must cross over this value (for a SELL) or fall below the
+	 * opposite (-entryCrossover) (for a BUY). Negative crossover is more easy to happen than positive crossover.
 	 */
 	entryCrossover: number | false;
 	/**
-	 * In order to be considered as a signal, the price must cross over this value (for a SELL) or fall below it (for a BUY).
+	 * In order to be considered as an exit signal, the price must cross over this value (for a SELL) or fall below the
+	 * opposite (-exitCrossover) (for a BUY). Negative crossover is more easy to happen than positive crossover.
 	 */
 	exitCrossover: number | false;
 	/**

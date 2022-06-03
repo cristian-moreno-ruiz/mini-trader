@@ -35,7 +35,6 @@ export const MacdHistogram: StrategyDefinition = {
 					name: 'Valley Detected',
 					condition:
 						'{{macd.3.valueMACDHist}} > {{macd.2.valueMACDHist}} && {{macd.2.valueMACDHist}} < {{macd.1.valueMACDHist}} && {{macd.1.valueMACDHist}} < {{macd.0.valueMACDHist}}',
-
 					actions: [
 						// Place BUY flag.
 						{ action: 'fetch', input: { save: 'detected', source: 'local', data: 'BUY' } },
@@ -43,13 +42,13 @@ export const MacdHistogram: StrategyDefinition = {
 						// If crossovers are set, check if they are met for both entry and exit.
 						{
 							condition:
-								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} < {{configuration.entryCrossover}}',
+								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} < -{{configuration.entryCrossover}}',
 							action: 'fetch',
 							input: { save: 'entrySignal', source: 'local', data: 'BUY' },
 						},
 						{
 							condition:
-								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < {{configuration.exitCrossover}}',
+								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < -{{configuration.exitCrossover}}',
 
 							action: 'fetch',
 							input: { save: 'exitSignal', source: 'local', data: 'BUY' },
