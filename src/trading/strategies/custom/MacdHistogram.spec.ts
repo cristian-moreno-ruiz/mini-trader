@@ -164,7 +164,7 @@ describe('MacdHistogram', () => {
 				symbol: 'XRP/USDT',
 				entrySize: 13,
 				entryCrossover: 1,
-				exitCrossover: 0.5,
+				exitCrossover: 1,
 				interval: '1m',
 				stop: 0.5,
 				profit: 1,
@@ -249,6 +249,86 @@ describe('MacdHistogram', () => {
 			    "newClientOrderId": "MINI_TRADER:abc1234",
 			    "quantity": "13",
 			    "reduceOnly": "false",
+			    "side": "SELL",
+			    "symbol": "XRPUSDT",
+			    "type": "MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should not exit a SHORT position if the valley doesn"t cross below the -exitCrossover: -1', async () => {
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0 },
+				{ valueMACDHist: -0.1 },
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: 0.5 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).not.toHaveBeenCalled();
+		});
+
+		it('should not exit a LONG position if the peak doesn"t cross above the +entryCrossover: +1', async () => {
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0 },
+				{ valueMACDHist: 0.1 },
+				{ valueMACDHist: 0.5 },
+				{ valueMACDHist: -0.5 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).not.toHaveBeenCalled();
+		});
+
+		it('should exit a SHORT position if the valley crosses below the -entryCrossover: -1', async () => {
+			binanceMockSettings.positionAmt = '-13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -0.8 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalled();
+			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "13",
+			    "reduceOnly": "true",
+			    "side": "BUY",
+			    "symbol": "XRPUSDT",
+			    "type": "MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should exit a LONG position if the peak crosses above the entryCrossover', async () => {
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0.8 },
+				{ valueMACDHist: 0.9 },
+				{ valueMACDHist: 1.5 },
+				{ valueMACDHist: 0.5 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalled();
+			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "13",
+			    "reduceOnly": "true",
 			    "side": "SELL",
 			    "symbol": "XRPUSDT",
 			    "type": "MARKET",
