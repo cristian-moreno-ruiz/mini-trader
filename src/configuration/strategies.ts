@@ -50,7 +50,7 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		leverage: 15,
 		symbol: 'LTC/USDT',
-		entrySize: 0.08,
+		entrySize: 0.09,
 		entryCrossover: false,
 		exitCrossover: false,
 		// stop: 0.5,
