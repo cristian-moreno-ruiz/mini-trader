@@ -5,8 +5,8 @@ const secondsBetweenRequests = 16;
 
 const keys = [
 	process.env.TAAPI_API_KEY_1,
-	// process.env.TAAPI_API_KEY_2,
-	// process.env.TAAPI_API_KEY_3,
+	process.env.TAAPI_API_KEY_2,
+	process.env.TAAPI_API_KEY_3,
 	// process.env.TAAPI_API_KEY_4,
 	// process.env.TAAPI_API_KEY_5,
 ];
@@ -21,10 +21,7 @@ const pool = {
 };
 
 export class Taapi {
-	private client;
 	private exchange = 'binance';
-	// private lastRequest: Date | undefined;
-	// private queue = 0;
 
 	private async getClient() {
 		const index = pool.next;
