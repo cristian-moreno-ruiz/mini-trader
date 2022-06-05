@@ -55,7 +55,7 @@ export const strategies: StrategyConfiguration[] = [
 		exitCrossover: false,
 		// stop: 0.5,
 		// profit: 1,
-		interval: '5m',
+		interval: '15m',
 	},
 	{
 		strategy: 'Custom',
@@ -64,11 +64,11 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 15,
 		symbol: 'XMR/USDT',
 		entrySize: 0.03,
-		entryCrossover: 0,
-		exitCrossover: 0.23,
+		entryCrossover: 0.23,
+		exitCrossover: 0,
 		// stop: 0.5,
 		// profit: 1,
-		interval: '5m',
+		interval: '15m',
 	},
 	// {
 	// 	strategy: 'Custom',
