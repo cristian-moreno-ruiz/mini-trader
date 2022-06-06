@@ -16,10 +16,10 @@ Date.now = jest.fn().mockImplementation(() => {
 describe('MacdHistogram', () => {
 	let engine: Custom;
 
+	beforeEach(jest.clearAllMocks);
+
 	describe('Trade with minimum configuration', () => {
 		beforeEach(() => {
-			jest.clearAllMocks();
-
 			const strategy = {
 				strategy: 'Custom',
 				name: 'MacdHistogram',
@@ -166,12 +166,12 @@ describe('MacdHistogram', () => {
 				entryCrossover: 1,
 				exitCrossover: 1,
 				interval: '1m',
-				stop: 0.5,
-				profit: 1,
-				reEntries: {
-					percentageSize: 100,
-					maxPosition: 30,
-				},
+				// stop: 0.5,
+				// profit: 1,
+				// reEntries: {
+				// 	percentageSize: 100,
+				// 	maxPosition: 30,
+				// },
 			} as MacdHistogramConfiguration;
 
 			engine = new Custom(strategy);
@@ -258,7 +258,7 @@ describe('MacdHistogram', () => {
 		});
 
 		it('should not exit a SHORT position if the valley doesn"t cross below the -exitCrossover: -1', async () => {
-			binanceMockSettings.positionAmt = '13';
+			binanceMockSettings.positionAmt = '-13';
 			taapiMockSettings.macd = [
 				{ valueMACDHist: 0 },
 				{ valueMACDHist: -0.1 },
@@ -428,6 +428,52 @@ describe('MacdHistogram', () => {
 		`);
 		});
 
+		it('should re-enter a LONG position if a valley occurs, with remaining allowed size', async () => {
+			binanceMockSettings.positionAmt = '26';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -0.8 },
+			];
+
+			await engine.trade();
+
+			// All previous orders should be cancelled
+			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
+
+			// Should create market and stop orders (TODO: and profit)
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "4",
+			    "reduceOnly": "false",
+			    "side": "BUY",
+			    "symbol": "XRPUSDT",
+			    "type": "MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should not re-enter a LONG position when maxSize is reached', async () => {
+			binanceMockSettings.positionAmt = '30';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -0.8 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+		});
+
 		it('should re-enter a SHORT position if a peak occurs', async () => {
 			binanceMockSettings.positionAmt = '-13';
 			taapiMockSettings.macd = [
@@ -469,6 +515,51 @@ describe('MacdHistogram', () => {
 			  ],
 			]
 		`);
+		});
+
+		it('should re-enter a SHORT position if a peak occurs, with remaining allowed size', async () => {
+			binanceMockSettings.positionAmt = '-13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0.8 },
+				{ valueMACDHist: 0.9 },
+				{ valueMACDHist: 1.5 },
+				{ valueMACDHist: 0.5 },
+			];
+
+			await engine.trade();
+
+			// All previous orders should be cancelled
+			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
+
+			// Should create market and stop orders (TODO: and profit)
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "13",
+			    "reduceOnly": "false",
+			    "side": "SELL",
+			    "symbol": "XRPUSDT",
+			    "type": "MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should not re-enter a SHORT position when maxSize is reached', async () => {
+			binanceMockSettings.positionAmt = '-30';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0.8 },
+				{ valueMACDHist: 0.9 },
+				{ valueMACDHist: 1.5 },
+				{ valueMACDHist: 0.5 },
+			];
+
+			await engine.trade();
+
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
 		});
 	});
 });

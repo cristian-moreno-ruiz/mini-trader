@@ -139,7 +139,7 @@ export const MacdHistogram: StrategyDefinition = {
 							input: {
 								save: 'reEntrySize',
 								data:
-									'(utils.percentage(Math.abs({{currentPosition.positionAmt}}), {{configuration.reEntries.percentageSize}})) > {{configuration.reEntries.maxPosition}} ' +
+									'(utils.percentage(Math.abs({{currentPosition.positionAmt}}), {{configuration.reEntries.percentageSize}})) + Math.abs({{currentPosition.positionAmt}}) > {{configuration.reEntries.maxPosition}} ' +
 									'? {{configuration.reEntries.maxPosition}} - Math.abs({{currentPosition.positionAmt}})' +
 									': (utils.percentage(Math.abs({{currentPosition.positionAmt}}), {{configuration.reEntries.percentageSize}})) ',
 							},
