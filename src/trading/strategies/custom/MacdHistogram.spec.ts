@@ -419,7 +419,7 @@ describe('MacdHistogram', () => {
 			      "quantity": "13",
 			      "reduceOnly": "true",
 			      "side": "SELL",
-			      "stopPrice": "0.3934",
+			      "stopPrice": "0.398",
 			      "symbol": "XRPUSDT",
 			      "type": "STOP_MARKET",
 			    },
