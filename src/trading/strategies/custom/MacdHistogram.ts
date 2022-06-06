@@ -135,21 +135,19 @@ export const MacdHistogram: StrategyDefinition = {
 						'"{{configuration.reEntries.percentageSize}}" && +"{{configuration.reEntries.percentageSize}}" > 0 && Math.abs({{currentPosition.positionAmt}}) < +"{{configuration.reEntries.maxPosition}}"',
 					actions: [
 						{
-							condition: '{{currentPosition.positionAmt}} > 0',
 							action: 'calculate',
 							input: {
 								save: 'reEntrySize',
 								data:
-									'(utils.percentage({{currentPosition.positionAmt}}, {{configuration.reEntries.percentageSize}})) > {{configuration.reEntries.maxPosition}}' +
-									'? (utils.percentage({{currentPosition.positionAmt}}, {{configuration.reEntries.percentageSize}}))' +
-									': {{configuration.reEntries.maxPosition}} - Math.abs({{currentPosition.positionAmt}})',
+									'(utils.percentage(Math.abs({{currentPosition.positionAmt}}), {{configuration.reEntries.percentageSize}})) > {{configuration.reEntries.maxPosition}} ' +
+									'? {{configuration.reEntries.maxPosition}} - Math.abs({{currentPosition.positionAmt}})' +
+									': (utils.percentage(Math.abs({{currentPosition.positionAmt}}), {{configuration.reEntries.percentageSize}})) ',
 							},
 						},
 						{
 							// Send Notification
 							action: 'sendNotification',
-							input:
-								'{{entrySignal}} Re-Entry @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
+							input: '{{entrySignal}} Re-Entry @ {{currentPrice}} (x{{reEntrySize}})',
 						},
 						{
 							// Re-entry

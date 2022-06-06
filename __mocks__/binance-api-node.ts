@@ -1,7 +1,8 @@
 export const binanceMockSettings = {
 	symbol: 'XRPUSDT',
 	positionAmt: '13.0',
-	price: '0.3956',
+	price: '0.4100',
+	entryPrice: '0.4000',
 };
 
 export const binanceMock = {
@@ -17,7 +18,7 @@ export const binanceMock = {
 			{
 				symbol: binanceMockSettings.symbol,
 				positionAmt: binanceMockSettings.positionAmt,
-				entryPrice: '0.3954',
+				entryPrice: binanceMockSettings.entryPrice,
 				markPrice: '0.39540000',
 				unRealizedProfit: '0.00000000',
 				liquidationPrice: '0.37161365',

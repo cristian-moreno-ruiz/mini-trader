@@ -361,4 +361,114 @@ describe('MacdHistogram', () => {
 			engine = new Custom(strategy);
 		});
 	});
+
+	describe('Should Trade with Stop, Profit and Re-Entries enabled', () => {
+		beforeEach(() => {
+			const strategy = {
+				strategy: 'Custom',
+				name: 'MacdHistogram',
+				mode: 'FUTURES',
+				leverage: 15,
+				symbol: 'XRP/USDT',
+				entrySize: 13,
+				entryCrossover: false,
+				exitCrossover: false,
+				interval: '1m',
+				stop: 0.5,
+				profit: 1,
+				reEntries: {
+					percentageSize: 100,
+					maxPosition: 30,
+				},
+			} as MacdHistogramConfiguration;
+
+			engine = new Custom(strategy);
+		});
+
+		it('should re-enter a LONG position if a valley occurs', async () => {
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -0.8 },
+			];
+
+			await engine.trade();
+
+			// All previous orders should be cancelled
+			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
+
+			// Should create market and stop orders (TODO: and profit)
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
+			Array [
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "false",
+			      "side": "BUY",
+			      "symbol": "XRPUSDT",
+			      "type": "MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "true",
+			      "side": "SELL",
+			      "stopPrice": "0.3934",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			]
+		`);
+		});
+
+		it('should re-enter a SHORT position if a peak occurs', async () => {
+			binanceMockSettings.positionAmt = '-13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0.8 },
+				{ valueMACDHist: 0.9 },
+				{ valueMACDHist: 1.5 },
+				{ valueMACDHist: 0.5 },
+			];
+
+			await engine.trade();
+
+			// All previous orders should be cancelled
+			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
+
+			// Should create market and stop orders (TODO: and profit)
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
+			Array [
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "false",
+			      "side": "SELL",
+			      "symbol": "XRPUSDT",
+			      "type": "MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "-13",
+			      "reduceOnly": "true",
+			      "side": "BUY",
+			      "stopPrice": "0.402",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			]
+		`);
+		});
+	});
 });
