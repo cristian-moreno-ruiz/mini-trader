@@ -1,22 +1,22 @@
 import { Direction, StrategyConfiguration } from '../trading/strategies/types';
 
 export const strategies: StrategyConfiguration[] = [
-	// {
-	// 	strategy: 'MartinGala',
-	// 	mode: 'FUTURES',
-	// 	restart: true,
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		restart: true,
 
-	// 	entrySize: 0.001,
-	// 	reBuyAmountPercentage: 60,
-	// 	reBuySpacingPercentage: 2.5,
-	// 	stopUsd: 50,
-	// 	profitPercentage: 7,
-	// 	profitCallbackPercentage: 0.3,
+		entrySize: 0.001,
+		reBuyAmountPercentage: 60,
+		reBuySpacingPercentage: 2.5,
+		stopUsd: 50,
+		profitPercentage: 7,
+		profitCallbackPercentage: 0.3,
 
-	// 	leverage: 15,
-	// 	direction: Direction.BUY,
-	// 	symbol: 'BTC/BUSD',
-	// },
+		leverage: 15,
+		direction: Direction.BUY,
+		symbol: 'BTC/BUSD',
+	},
 	{
 		strategy: 'MartinGala',
 		mode: 'FUTURES',
