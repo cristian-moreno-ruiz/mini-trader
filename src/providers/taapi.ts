@@ -7,7 +7,7 @@ const keys = [
 	process.env.TAAPI_API_KEY_1,
 	process.env.TAAPI_API_KEY_2,
 	process.env.TAAPI_API_KEY_3,
-	// process.env.TAAPI_API_KEY_4,
+	process.env.TAAPI_API_KEY_4,
 	// process.env.TAAPI_API_KEY_5,
 ];
 
