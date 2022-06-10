@@ -1,6 +1,6 @@
 import express from 'express';
 import { getStats } from './stats';
-import { link, sendLoginCode } from './telegram';
+// import { link, sendLoginCode } from './telegram';
 
 const app = express();
 const port = 1234; // default port to listen
@@ -24,15 +24,15 @@ app.get('/stats', async (req, res) => {
 	res.json(stats);
 });
 
-app.post('/telegram/sendLoginCode', async (req, res) => {
-	const stats = await sendLoginCode(req);
-	res.json(stats);
-});
+// app.post('/telegram/sendLoginCode', async (req, res) => {
+// 	const stats = await sendLoginCode(req);
+// 	res.json(stats);
+// });
 
-app.post('/telegram/link', async (req, res) => {
-	const stats = await link(req);
-	res.json(stats);
-});
+// app.post('/telegram/link', async (req, res) => {
+// 	const stats = await link(req);
+// 	res.json(stats);
+// });
 
 export const init = () => {
 	// start the Express server
