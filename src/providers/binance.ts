@@ -222,6 +222,7 @@ export class Binance {
 		symbol?: string,
 		mode = 'FUTURES',
 		dates?: { start: Date; end: Date },
+		type?: 'REALIZED_PNL' | 'COMMISSION' | 'FUNDING_FEE',
 	): Promise<any> {
 		if (mode !== 'FUTURES') {
 			return [];
@@ -231,6 +232,7 @@ export class Binance {
 			symbol,
 			startTime: dates?.start?.getTime(),
 			endTime: dates?.end?.getTime(),
+			incomeType: type,
 		};
 
 		if (!symbol) {
@@ -242,6 +244,10 @@ export class Binance {
 
 		if (!dates?.end) {
 			delete data?.endTime;
+		}
+
+		if (!type) {
+			delete data.incomeType;
 		}
 
 		const income: any = [];

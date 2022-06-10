@@ -1,0 +1,23 @@
+{
+	"description": "Similar to last week just, added a bit more position",
+	"comments": "",
+	"from": "2022-06-10:18:00:00",
+	"to": "2022-06-17:16:00:00",
+	// TODO:
+	"margin": "0.37",
+	"duration": "5 Days",
+	"strategy": {
+		"strategy": "Custom",
+		"name": "MacdHistogram",
+		"mode": "FUTURES",
+		"leverage": 15,
+		"symbol": "LTC/USDT",
+		"entrySize": 0.11,
+		"entryCrossover": false,
+		"exitCrossover": false,
+		"interval": "15m"
+	},
+	"results": {
+		// TODO:
+	}
+}

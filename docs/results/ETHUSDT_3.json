@@ -1,0 +1,28 @@
+{
+	"description": "Added stop loss and reentries",
+	"comments": "",
+	"from": "2022-06-10:18:00:00",
+	"to": "2022-06-17:16:00:00",
+	// TODO:
+	"margin": "0.37",
+	"duration": "1 Week",
+	"strategy": {
+		"strategy": "Custom",
+		"name": "MacdHistogram",
+		"mode": "FUTURES",
+		"leverage": 15,
+		"symbol": "ETH/USDT",
+		"entrySize": 0.004,
+		"entryCrossover": 0,
+		"exitCrossover": 0,
+		"stop": 2,
+		"reEntries": {
+			"percentageSize": 100,
+			"maxPosition": 0.009
+		},
+		"interval": "15m"
+	},
+	"results": {
+		// TODO:
+	}
+}
