@@ -69,15 +69,15 @@ export const strategies: StrategyConfiguration[] = [
 		leverage: 30,
 		symbol: 'BTC/USDT',
 		entrySize: 0.001,
-		entryCrossover: false,
-		exitCrossover: false,
+		entryCrossover: -10,
+		exitCrossover: -10,
 		// stop: 2,
 		// reEntries: {
 		// 	percentageSize: 100,
 		// 	maxPosition: 0.009,
 		// },
 		// profit: 1,
-		interval: '15m',
+		interval: '30m',
 	},
 	{
 		strategy: 'Custom',
