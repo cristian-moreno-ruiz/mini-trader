@@ -176,7 +176,7 @@ export class Custom extends AbstractStrategy {
 		}
 
 		if (args.quantity) {
-			args.quantity = `${round(+args.quantity, this.precision)}`;
+			args.quantity = `${Math.abs(round(+args.quantity, this.precision))}`;
 		}
 
 		let exists = false;
