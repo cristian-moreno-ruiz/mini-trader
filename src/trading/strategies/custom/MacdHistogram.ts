@@ -42,13 +42,13 @@ export const MacdHistogram: StrategyDefinition = {
 						// If crossovers are set, check if they are met for both entry and exit.
 						{
 							condition:
-								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} < -{{configuration.entryCrossover}}',
+								'{{configuration.entryCrossover}} === false || {{macd.2.valueMACDHist}} < -({{configuration.entryCrossover}})',
 							action: 'fetch',
 							input: { save: 'entrySignal', source: 'local', data: 'BUY' },
 						},
 						{
 							condition:
-								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < -{{configuration.exitCrossover}}',
+								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < -({{configuration.exitCrossover}})',
 
 							action: 'fetch',
 							input: { save: 'exitSignal', source: 'local', data: 'BUY' },
