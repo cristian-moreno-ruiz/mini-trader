@@ -140,5 +140,9 @@ export interface MacdHistogramConfiguration {
 		 * Allow re-entries up to this position size.
 		 */
 		maxPosition: number;
+		/**
+		 * Min time (minutes) between re-entries to avoid re-entering in same candle.
+		 */
+		interval: number;
 	};
 }

@@ -41,10 +41,11 @@ export const strategies: StrategyConfiguration[] = [
 		entryCrossover: 0,
 		exitCrossover: 0,
 		stop: 2,
-		// reEntries: {
-		// 	percentageSize: 100,
-		// 	maxPosition: 0.009,
-		// },
+		reEntries: {
+			percentageSize: 100,
+			maxPosition: 0.012,
+			interval: 20,
+		},
 		// profit: 1,
 		interval: '15m',
 	},

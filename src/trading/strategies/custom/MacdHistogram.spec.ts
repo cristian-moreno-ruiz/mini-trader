@@ -16,7 +16,10 @@ Date.now = jest.fn().mockImplementation(() => {
 describe('MacdHistogram', () => {
 	let engine: Custom;
 
-	beforeEach(jest.clearAllMocks);
+	beforeEach(() => {
+		jest.clearAllMocks();
+		binanceMockSettings.reset();
+	});
 
 	describe('Trade with minimum configuration', () => {
 		beforeEach(() => {
@@ -379,6 +382,7 @@ describe('MacdHistogram', () => {
 				reEntries: {
 					percentageSize: 100,
 					maxPosition: 30,
+					interval: 1,
 				},
 			} as MacdHistogramConfiguration;
 
@@ -426,6 +430,24 @@ describe('MacdHistogram', () => {
 			  ],
 			]
 		`);
+		});
+
+		// This is to ensure we only re-enter once every peak/valley.
+		it('should not re-enter twice in the same candle, using interval setting', async () => {
+			binanceMockSettings.positionUpdateTime = new Date().getTime();
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -0.8 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
 		});
 
 		it('should re-enter a LONG position if a valley occurs, with remaining allowed size', async () => {
@@ -505,7 +527,7 @@ describe('MacdHistogram', () => {
 			  Array [
 			    Object {
 			      "newClientOrderId": "MINI_TRADER:abc1234",
-			      "quantity": "-13",
+			      "quantity": "13",
 			      "reduceOnly": "true",
 			      "side": "BUY",
 			      "stopPrice": "0.402",

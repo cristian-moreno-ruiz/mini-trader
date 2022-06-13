@@ -16,6 +16,7 @@ import {
 import * as Strategies from './custom';
 import Mustache from 'mustache';
 import { round } from '../../utils';
+import { differenceInMinutes } from 'date-fns';
 
 export const utils = {
 	percentage: (value: number, percentage: number): number => {
@@ -24,6 +25,7 @@ export const utils = {
 	percentageIncrease: (value: number, percentage: number): number => {
 		return value * (1 + percentage / 100);
 	},
+	differenceInMinutes: differenceInMinutes,
 };
 
 export class Custom extends AbstractStrategy {

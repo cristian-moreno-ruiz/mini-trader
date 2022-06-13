@@ -132,7 +132,8 @@ export const MacdHistogram: StrategyDefinition = {
 				{
 					name: 'Processing potential re-entry',
 					condition:
-						'"{{configuration.reEntries.percentageSize}}" && +"{{configuration.reEntries.percentageSize}}" > 0 && Math.abs({{currentPosition.positionAmt}}) < +"{{configuration.reEntries.maxPosition}}"',
+						'"{{configuration.reEntries.percentageSize}}" && +"{{configuration.reEntries.percentageSize}}" > 0 && Math.abs({{currentPosition.positionAmt}}) < +"{{configuration.reEntries.maxPosition}}"' +
+						' && Math.abs(utils.differenceInMinutes(new Date({{currentPosition.updateTime}}), new Date())) > +"{{configuration.reEntries.interval}}"',
 					actions: [
 						{
 							action: 'calculate',

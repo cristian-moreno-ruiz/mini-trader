@@ -1,8 +1,14 @@
-export const binanceMockSettings = {
+const defaultMockSettings = {
 	symbol: 'XRPUSDT',
 	positionAmt: '13.0',
 	price: '0.4100',
 	entryPrice: '0.4000',
+	positionUpdateTime: 1654180011349,
+	reset: () => (binanceMockSettings = { ...defaultMockSettings }),
+};
+
+export let binanceMockSettings = {
+	...defaultMockSettings,
 };
 
 export const binanceMock = {
@@ -30,7 +36,7 @@ export const binanceMock = {
 				positionSide: 'BOTH',
 				notional: '5.14020000',
 				isolatedWallet: '0.34062393',
-				updateTime: 1654180011349,
+				updateTime: binanceMockSettings.positionUpdateTime,
 			},
 		]),
 	),
