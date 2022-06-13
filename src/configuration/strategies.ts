@@ -85,7 +85,7 @@ export const strategies: StrategyConfiguration[] = [
 		mode: 'FUTURES',
 		leverage: 15,
 		symbol: 'XMR/USDT',
-		entrySize: 0.03,
+		entrySize: 0.05,
 		entryCrossover: 0.15,
 		exitCrossover: 0,
 		// stop: 0.5,
