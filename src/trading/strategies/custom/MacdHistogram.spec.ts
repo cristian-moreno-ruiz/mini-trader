@@ -389,6 +389,23 @@ describe('MacdHistogram', () => {
 			engine = new Custom(strategy);
 		});
 
+		it('should not re-enter LONG if there is no valley', async () => {
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: -0.5 },
+				{ valueMACDHist: -0.9 },
+				{ valueMACDHist: -1.5 },
+				{ valueMACDHist: -1.8 },
+			];
+
+			await engine.trade();
+
+			// Should not cancel previous order
+			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+		});
+
 		it('should re-enter a LONG position if a valley occurs', async () => {
 			binanceMockSettings.positionAmt = '13';
 			taapiMockSettings.macd = [
