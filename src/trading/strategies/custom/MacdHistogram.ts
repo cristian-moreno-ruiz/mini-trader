@@ -132,7 +132,7 @@ export const MacdHistogram: StrategyDefinition = {
 				{
 					name: 'Processing potential re-entry',
 					condition:
-						'"{{entrySignal}}" === "SELL" && {{currentPosition.positionAmt}} < 0 || "{{entrySignal}}" === "BUY" && {{currentPosition.positionAmt}} > 0' +
+						'("{{entrySignal}}" === "SELL" && {{currentPosition.positionAmt}} < 0 || "{{entrySignal}}" === "BUY" && {{currentPosition.positionAmt}} > 0)' +
 						'&& "{{configuration.reEntries.percentageSize}}" && +"{{configuration.reEntries.percentageSize}}" > 0 && Math.abs({{currentPosition.positionAmt}}) < +"{{configuration.reEntries.maxPosition}}"' +
 						' && Math.abs(utils.differenceInMinutes(new Date({{currentPosition.updateTime}}), new Date())) > +"{{configuration.reEntries.interval}}"',
 					actions: [
