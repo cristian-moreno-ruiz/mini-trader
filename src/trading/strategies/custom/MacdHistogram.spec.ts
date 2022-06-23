@@ -19,6 +19,7 @@ describe('MacdHistogram', () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
 		binanceMockSettings.reset();
+		taapiMockSettings.reset();
 	});
 
 	describe('Trade with minimum configuration', () => {
@@ -341,7 +342,7 @@ describe('MacdHistogram', () => {
 		});
 	});
 
-	describe('Trade with Stop and Profit enabled', () => {
+	describe('Trade with Stop, BE and Profit enabled', () => {
 		beforeEach(() => {
 			const strategy = {
 				strategy: 'Custom',
@@ -354,14 +355,72 @@ describe('MacdHistogram', () => {
 				exitCrossover: false,
 				interval: '1m',
 				stop: 0.5,
+				be: 0.5,
 				profit: 1,
-				// reEntries: {
-				// 	percentageSize: 100,
-				// 	maxPosition: 30,
-				// },
 			} as MacdHistogramConfiguration;
 
 			engine = new Custom(strategy);
+		});
+
+		it('should create a BE SL in a LONG position', async () => {
+			binanceMockSettings.price = '0.41';
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls[1]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "13",
+			    "reduceOnly": "true",
+			    "side": "SELL",
+			    "stopPrice": "0.4",
+			    "symbol": "XRPUSDT",
+			    "type": "STOP_MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should not create a BE SL in a LONG position if price not high enough', async () => {
+			binanceMockSettings.price = '0.401';
+
+			await engine.trade();
+
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+		});
+
+		it('should create a BE SL in a SHORT position', async () => {
+			binanceMockSettings.positionAmt = '-13';
+			binanceMockSettings.price = '0.39';
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			expect(binanceMock.futuresOrder.mock.calls[1]).toMatchInlineSnapshot(`
+			Array [
+			  Object {
+			    "newClientOrderId": "MINI_TRADER:abc1234",
+			    "quantity": "13",
+			    "reduceOnly": "true",
+			    "side": "BUY",
+			    "stopPrice": "0.4",
+			    "symbol": "XRPUSDT",
+			    "type": "STOP_MARKET",
+			  },
+			]
+		`);
+		});
+
+		it('should not create a BE SL in a SHORT position if price not low enough', async () => {
+			binanceMockSettings.price = '0.399';
+
+			await engine.trade();
+
+			// Only called to ensure stop is in place
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
 		});
 	});
 

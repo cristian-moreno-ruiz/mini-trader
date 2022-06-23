@@ -195,6 +195,39 @@ export const MacdHistogram: StrategyDefinition = {
 						},
 					],
 				},
+				{
+					// Place Break Even SL if not present.
+					condition: '"{{configuration.be}}"',
+					actions: [
+						{
+							action: 'calculate',
+							input: [
+								{
+									save: 'stopSide',
+									data: '{{currentPosition.positionAmt}} > 0 ? "SELL" : "BUY"',
+								},
+								{
+									save: 'trigger',
+									data: 'utils.percentageIncrease({{currentPosition.entryPrice}}, Math.sign({{currentPosition.positionAmt}}) * {{configuration.be}})',
+								},
+							],
+						},
+						{
+							name: 'Creating BE order',
+							condition:
+								'{{currentPosition.positionAmt}} > 0 && {{currentPrice}} >= {{trigger}}' +
+								'|| {{currentPosition.positionAmt}} < 0 && {{currentPrice}} <= {{trigger}}',
+							action: 'createOrderIfNotExists',
+							input: {
+								side: '{{stopSide}}' as 'BUY' | 'SELL',
+								quantity: '{{currentPosition.positionAmt}}',
+								price: '{{currentPosition.entryPrice}}',
+								type: 'STOP_MARKET',
+								reduceOnly: true,
+							},
+						},
+					],
+				},
 				// FIXME: This is in progress
 				// Ensure TPs and SL are set.
 				// {
