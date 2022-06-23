@@ -200,17 +200,38 @@ export class Custom extends AbstractStrategy {
 		if (args.reduceOnly) {
 			reduceOnly = '' + args.reduceOnly;
 		}
+		try {
+			await this.binance.createOrder(
+				this.pair,
+				this.mode,
+				args.side,
+				args.quantity ? +args.quantity : undefined,
+				args.price ? +args.price : undefined,
+				args.type,
+				reduceOnly,
+				args.callback,
+			);
+		} catch (err) {
+			const failedOrder = {
+				quantity: args.quantity?.toString(),
+				price: args.price,
+				type: args.type,
+				side: args.side,
+			};
+			const openOrders = this.builtin.openOrders.map((o) => ({
+				quantity: o.quantity,
+				price: o.price,
+				stopPrice: o.stopPrice,
+				type: o.type,
+				side: o.side,
+			}));
 
-		await this.binance.createOrder(
-			this.pair,
-			this.mode,
-			args.side,
-			args.quantity ? +args.quantity : undefined,
-			args.price ? +args.price : undefined,
-			args.type,
-			reduceOnly,
-			args.callback,
-		);
+			console.error(
+				`There was an error creating an order. Exists is ${exists}. The order is ${JSON.stringify(
+					failedOrder,
+				)}, and these are the open ones: ${JSON.stringify(openOrders)}`,
+			);
+		}
 
 		await this.loadBuiltInVariables();
 		return;
