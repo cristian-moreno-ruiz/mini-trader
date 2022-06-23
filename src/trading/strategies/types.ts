@@ -114,6 +114,10 @@ export interface MacdHistogramConfiguration {
 	 */
 	profit?: number;
 	/**
+	 * Break Even: When this price is reached, place stop loss at entry price.
+	 */
+	be?: number;
+	/**
 	 * The size of a single entry.
 	 */
 	entrySize: number;
