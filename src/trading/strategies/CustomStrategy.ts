@@ -186,7 +186,8 @@ export class Custom extends AbstractStrategy {
 			exists = this.builtin?.openOrders?.find(
 				(order) =>
 					order.origQty === args.quantity?.toString() &&
-					(order.price === args.price || order.stopPrice === args.price) &&
+					(+order.price === +(args.price as string) ||
+						+order.stopPrice === +(args.price as string)) &&
 					order.type === args.type &&
 					order.side === args.side,
 			);
