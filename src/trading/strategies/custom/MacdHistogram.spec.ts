@@ -362,23 +362,47 @@ describe('MacdHistogram', () => {
 			engine = new Custom(strategy);
 		});
 
-		it('should create a BE SL in a LONG position', async () => {
+		it('should create a TP, BE and SL in a LONG position', async () => {
 			binanceMockSettings.price = '0.41';
 
 			await engine.trade();
 
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
-			expect(binanceMock.futuresOrder.mock.calls[1]).toMatchInlineSnapshot(`
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
+			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
 			Array [
-			  Object {
-			    "newClientOrderId": "MINI_TRADER:abc1234",
-			    "quantity": "13",
-			    "reduceOnly": "true",
-			    "side": "SELL",
-			    "stopPrice": "0.4",
-			    "symbol": "XRPUSDT",
-			    "type": "STOP_MARKET",
-			  },
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "true",
+			      "side": "SELL",
+			      "stopPrice": "0.398",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "true",
+			      "side": "SELL",
+			      "stopPrice": "0.4",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "price": 0.404,
+			      "quantity": "6.5",
+			      "reduceOnly": "true",
+			      "side": "SELL",
+			      "symbol": "XRPUSDT",
+			      "type": "LIMIT",
+			    },
+			  ],
 			]
 		`);
 		});
@@ -388,28 +412,52 @@ describe('MacdHistogram', () => {
 
 			await engine.trade();
 
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure SL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 
-		it('should create a BE SL in a SHORT position', async () => {
+		it('should create TP, BE and SL in a SHORT position', async () => {
 			binanceMockSettings.positionAmt = '-13';
 			binanceMockSettings.price = '0.39';
 
 			await engine.trade();
 
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
-			expect(binanceMock.futuresOrder.mock.calls[1]).toMatchInlineSnapshot(`
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
+			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
 			Array [
-			  Object {
-			    "newClientOrderId": "MINI_TRADER:abc1234",
-			    "quantity": "13",
-			    "reduceOnly": "true",
-			    "side": "BUY",
-			    "stopPrice": "0.4",
-			    "symbol": "XRPUSDT",
-			    "type": "STOP_MARKET",
-			  },
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "true",
+			      "side": "BUY",
+			      "stopPrice": "0.402",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "quantity": "13",
+			      "reduceOnly": "true",
+			      "side": "BUY",
+			      "stopPrice": "0.4",
+			      "symbol": "XRPUSDT",
+			      "type": "STOP_MARKET",
+			    },
+			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "price": 0.396,
+			      "quantity": "6.5",
+			      "reduceOnly": "true",
+			      "side": "BUY",
+			      "symbol": "XRPUSDT",
+			      "type": "LIMIT",
+			    },
+			  ],
 			]
 		`);
 		});
@@ -419,8 +467,8 @@ describe('MacdHistogram', () => {
 
 			await engine.trade();
 
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure AL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 	});
 
@@ -461,8 +509,8 @@ describe('MacdHistogram', () => {
 
 			// Should not cancel previous order
 			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure SL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 
 		it('should re-enter a LONG position if a valley occurs', async () => {
@@ -479,8 +527,8 @@ describe('MacdHistogram', () => {
 			// All previous orders should be cancelled
 			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
 
-			// Should create market and stop orders (TODO: and profit)
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			// Should create market SL and TP orders
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
 			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
 			Array [
 			  Array [
@@ -504,6 +552,17 @@ describe('MacdHistogram', () => {
 			      "type": "STOP_MARKET",
 			    },
 			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "price": 0.404,
+			      "quantity": "6.5",
+			      "reduceOnly": "true",
+			      "side": "SELL",
+			      "symbol": "XRPUSDT",
+			      "type": "LIMIT",
+			    },
+			  ],
 			]
 		`);
 		});
@@ -522,8 +581,8 @@ describe('MacdHistogram', () => {
 			await engine.trade();
 
 			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure SL and TP orders
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 
 		it('should re-enter a LONG position if a valley occurs, with remaining allowed size', async () => {
@@ -540,8 +599,8 @@ describe('MacdHistogram', () => {
 			// All previous orders should be cancelled
 			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
 
-			// Should create market and stop orders (TODO: and profit)
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			// Should create market, SL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
 			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
 			Array [
 			  Object {
@@ -568,8 +627,8 @@ describe('MacdHistogram', () => {
 			await engine.trade();
 
 			expect(binanceMock.futuresCancelAllOpenOrders).not.toHaveBeenCalled();
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure SL and TP orders
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 
 		it('should re-enter a SHORT position if a peak occurs', async () => {
@@ -586,8 +645,8 @@ describe('MacdHistogram', () => {
 			// All previous orders should be cancelled
 			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
 
-			// Should create market and stop orders (TODO: and profit)
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			// Should create market, SL and TP orders
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
 			expect(binanceMock.futuresOrder.mock.calls).toMatchInlineSnapshot(`
 			Array [
 			  Array [
@@ -611,6 +670,17 @@ describe('MacdHistogram', () => {
 			      "type": "STOP_MARKET",
 			    },
 			  ],
+			  Array [
+			    Object {
+			      "newClientOrderId": "MINI_TRADER:abc1234",
+			      "price": 0.396,
+			      "quantity": "6.5",
+			      "reduceOnly": "true",
+			      "side": "BUY",
+			      "symbol": "XRPUSDT",
+			      "type": "LIMIT",
+			    },
+			  ],
 			]
 		`);
 		});
@@ -629,8 +699,8 @@ describe('MacdHistogram', () => {
 			// All previous orders should be cancelled
 			expect(binanceMock.futuresCancelAllOpenOrders).toHaveBeenCalledTimes(1);
 
-			// Should create market and stop orders (TODO: and profit)
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
+			// Should create market, SL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(3);
 			expect(binanceMock.futuresOrder.mock.calls[0]).toMatchInlineSnapshot(`
 			Array [
 			  Object {
@@ -656,8 +726,8 @@ describe('MacdHistogram', () => {
 
 			await engine.trade();
 
-			// Only called to ensure stop is in place
-			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(1);
+			// Only called to ensure SL and TP
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(2);
 		});
 	});
 });

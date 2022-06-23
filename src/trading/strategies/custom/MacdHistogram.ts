@@ -228,6 +228,40 @@ export const MacdHistogram: StrategyDefinition = {
 						},
 					],
 				},
+				{
+					// Place partial TP.
+					condition: '"{{configuration.profit}}"',
+					actions: [
+						{
+							action: 'calculate',
+							input: [
+								{
+									save: 'profitSide',
+									data: '{{currentPosition.positionAmt}} > 0 ? "SELL" : "BUY"',
+								},
+								{
+									save: 'profitPrice',
+									data: 'utils.percentageIncrease({{currentPosition.entryPrice}}, Math.sign({{currentPosition.positionAmt}}) * {{configuration.profit}})',
+								},
+								{
+									save: 'profitQuantity',
+									data: 'utils.percentage(Math.abs({{currentPosition.positionAmt}}), 50)',
+								},
+							],
+						},
+						{
+							name: 'Creating 50% profit order',
+							action: 'createOrderIfNotExists',
+							input: {
+								side: '{{stopSide}}' as 'BUY' | 'SELL',
+								quantity: '{{profitQuantity}}',
+								price: '{{profitPrice}}',
+								type: 'LIMIT',
+								reduceOnly: true,
+							},
+						},
+					],
+				},
 				// FIXME: This is in progress
 				// Ensure TPs and SL are set.
 				// {
