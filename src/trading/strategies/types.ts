@@ -4,13 +4,14 @@ export enum Direction {
 	SELL = 'SELL',
 }
 
-type Strategy = 'BuyLowSellHigh' | 'MartinGala' | 'Bollinger' | 'Custom';
+type Strategy = 'BuyLowSellHigh' | 'MartinGala' | 'Bollinger' | 'Custom' | 'Signals';
 
 export type StrategyConfiguration =
 	| BuyLowSellHighConfiguration
 	| MartinGalaConfiguration
 	| BollingerConfiguration
-	| CustomConfiguration;
+	| CustomConfiguration
+	| SignalsConfiguration;
 
 export interface BuyLowSellHighConfiguration {
 	// diffAbsolute: 500, // Price difference (absolute) to consider next move
@@ -149,4 +150,10 @@ export interface MacdHistogramConfiguration {
 		 */
 		interval: number;
 	};
+}
+
+export interface SignalsConfiguration {
+	strategy: 'Signals';
+	symbol: string;
+	dialog: string;
 }

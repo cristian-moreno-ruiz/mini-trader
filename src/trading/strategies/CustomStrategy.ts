@@ -38,6 +38,7 @@ export class Custom extends AbstractStrategy {
 	private taapi = new Taapi();
 
 	private symbol: string;
+	private pair: string;
 	private reference: string;
 	private mode: Mode;
 	private precision = 0;
@@ -65,7 +66,7 @@ export class Custom extends AbstractStrategy {
 	private variables: any = {};
 
 	constructor(configuration: CustomConfiguration) {
-		super(configuration.symbol);
+		super(configuration);
 		const strategy = Strategies[configuration.name];
 
 		if (!strategy) {
@@ -228,7 +229,7 @@ export class Custom extends AbstractStrategy {
 			}));
 
 			console.error(
-				`There was an error creating an order. Exists is ${exists}. The order is ${JSON.stringify(
+				`There was an error creating an order ${err}. Exists is ${exists}. The order is ${JSON.stringify(
 					failedOrder,
 				)}, and these are the open ones: ${JSON.stringify(openOrders)}`,
 			);

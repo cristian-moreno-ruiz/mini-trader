@@ -13,7 +13,7 @@ export class BuyLowSellHigh extends AbstractStrategy {
 	};
 
 	constructor(configuration: BuyLowSellHighConfiguration) {
-		super(configuration.symbol);
+		super(configuration);
 		this.configuration = configuration;
 	}
 

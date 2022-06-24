@@ -16,9 +16,10 @@ export class MartinGala extends AbstractStrategy {
 	private stop = false;
 	private pendingOrders: any[] = [];
 	private stopLossIsNextSent = false;
+	private pair: string;
 
 	constructor(configuration: MartinGalaConfiguration) {
-		super(configuration.symbol);
+		super(configuration);
 		this.configuration = configuration;
 		this.symbol = this.configuration.symbol.split('/')[0];
 		this.reference = this.configuration.symbol.split('/')[1];

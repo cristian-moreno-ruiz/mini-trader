@@ -12,6 +12,7 @@ export class Bollinger extends AbstractStrategy {
 	private taapi = new Taapi();
 
 	private symbol: string;
+	private pair: string;
 	private reference: string;
 	private mode: Mode;
 	private precision = 0;
@@ -24,7 +25,7 @@ export class Bollinger extends AbstractStrategy {
 	};
 
 	constructor(configuration: BollingerConfiguration) {
-		super(configuration.symbol);
+		super(configuration);
 		this.configuration = configuration;
 		this.symbol = this.configuration.symbol.split('/')[0];
 		this.reference = this.configuration.symbol.split('/')[1];

@@ -4,10 +4,9 @@ import { StrategyConfiguration } from './types';
 export abstract class AbstractStrategy {
 	private summary: string;
 	private slack = new Slack();
-	public configuration: StrategyConfiguration | undefined;
 
-	constructor(public pair: string) {
-		this.summary = `[${pair}] => `;
+	constructor(public configuration: StrategyConfiguration) {
+		this.summary = `[${configuration.symbol}] => `;
 	}
 
 	public abstract trade(): Promise<boolean>;
