@@ -97,7 +97,7 @@ export const MacdHistogram: StrategyDefinition = {
 		},
 		{
 			/**
-			 * 3. If position is open, perform re-entries, exits and ensure TPs and SL are set
+			 * 3. If position is open, perform re-entries, exits and ensure SL are set
 			 */
 			name: 'Position is open.',
 			condition: '{{currentPosition.positionAmt}} !== 0',
@@ -228,40 +228,6 @@ export const MacdHistogram: StrategyDefinition = {
 						},
 					],
 				},
-				{
-					// Place partial TP.
-					condition: '"{{configuration.profit}}"',
-					actions: [
-						{
-							action: 'calculate',
-							input: [
-								{
-									save: 'profitSide',
-									data: '{{currentPosition.positionAmt}} > 0 ? "SELL" : "BUY"',
-								},
-								{
-									save: 'profitPrice',
-									data: 'utils.percentageIncrease({{currentPosition.entryPrice}}, Math.sign({{currentPosition.positionAmt}}) * {{configuration.profit}})',
-								},
-								{
-									save: 'profitQuantity',
-									data: 'utils.percentage(Math.abs({{currentPosition.positionAmt}}), 50)',
-								},
-							],
-						},
-						{
-							name: 'Creating 50% profit order',
-							action: 'createOrderIfNotExists',
-							input: {
-								side: '{{stopSide}}' as 'BUY' | 'SELL',
-								quantity: '{{profitQuantity}}',
-								price: '{{profitPrice}}',
-								type: 'LIMIT',
-								reduceOnly: true,
-							},
-						},
-					],
-				},
 				// FIXME: This is in progress
 				// Ensure TPs and SL are set.
 				// {
@@ -296,6 +262,7 @@ export const MacdHistogram: StrategyDefinition = {
 								'{{entrySignal}} Entry Signal @ {{currentPrice}} (TP2 is {{priceOnLastValley}}, TP1 is halfway)',
 						},
 						{
+							// Create market order
 							action: 'createOrderIfNotExists',
 							input: {
 								side: '{{entrySignal}}' as 'BUY' | 'SELL',
@@ -303,6 +270,40 @@ export const MacdHistogram: StrategyDefinition = {
 								quantity: '{{configuration.entrySize}}',
 								reduceOnly: false,
 							},
+						},
+						{
+							// Place partial TP.
+							condition: '"{{configuration.profit}}"',
+							actions: [
+								{
+									action: 'calculate',
+									input: [
+										{
+											save: 'profitSide',
+											data: '{{currentPosition.positionAmt}} > 0 ? "SELL" : "BUY"',
+										},
+										{
+											save: 'profitPrice',
+											data: 'utils.percentageIncrease({{currentPosition.entryPrice}}, Math.sign({{currentPosition.positionAmt}}) * {{configuration.profit}})',
+										},
+										{
+											save: 'profitQuantity',
+											data: 'utils.percentage(Math.abs({{currentPosition.positionAmt}}), 50)',
+										},
+									],
+								},
+								{
+									name: 'Creating 50% profit order',
+									action: 'createOrderIfNotExists',
+									input: {
+										side: '{{profitSide}}' as 'BUY' | 'SELL',
+										quantity: '{{profitQuantity}}',
+										price: '{{profitPrice}}',
+										type: 'LIMIT',
+										reduceOnly: true,
+									},
+								},
+							],
 						},
 					],
 				},
