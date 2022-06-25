@@ -32,6 +32,7 @@
     "@types/mustache": "^4.1.2",
     "axios": "^0.27.1",
     "binance-api-node": "^0.11.35",
+    "bybit-api": "^2.2.1",
     "d3-array": "^2.12.1",
     "date-fns": "^2.28.0",
     "dotenv": "^16.0.0",

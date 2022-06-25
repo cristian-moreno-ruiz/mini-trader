@@ -156,4 +156,5 @@ export interface SignalsConfiguration {
 	strategy: 'Signals';
 	symbol: string;
 	dialog: string;
+	percentageSize: number;
 }
