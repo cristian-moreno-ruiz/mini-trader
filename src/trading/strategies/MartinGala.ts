@@ -63,6 +63,10 @@ export class MartinGala extends AbstractStrategy {
 		const entrySize = await this.calculateEntrySize(currentPrice);
 
 		if (!isOpen) {
+			if (this.configuration.entry?.enabled === false) {
+				return true;
+			}
+
 			// TODO: Check if there is an emergency stop, if so, stop the execution (or wait XXX minutes).
 			const stop = await this.checkEmergencyStop();
 
@@ -119,7 +123,7 @@ export class MartinGala extends AbstractStrategy {
 			const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);
 
 			const gafasSetup = await this.gafas.getSetup({
-				posicion: this.configuration.direction === 'BUY' ? 'LONG' : 'SHORT',
+				posicion: currentPosition.positionAmt > 0 ? 'LONG' : 'SHORT',
 				recompra: this.configuration.reBuySpacingPercentage,
 				monedasx: this.configuration.reBuyAmountPercentage,
 				stoploss: this.configuration.stopUsd,
@@ -127,7 +131,10 @@ export class MartinGala extends AbstractStrategy {
 				monedas: Math.abs(+currentPosition.positionAmt),
 			});
 
-			const orders = this.parseGafasSetup(gafasSetup, this.configuration.direction);
+			const orders = this.parseGafasSetup(
+				gafasSetup,
+				currentPosition.positionAmt > 0 ? 'BUY' : 'SELL',
+			);
 
 			// TODO: Check if they are in place.
 			await this.createMartinGalaOrders(orders, this.pair);
@@ -142,6 +149,7 @@ export class MartinGala extends AbstractStrategy {
 
 	private async verifyMartinGalaOrdersSanity() {
 		const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);
+		const side = currentPosition.positionAmt > 0 ? 'BUY' : 'SELL';
 		const liquidationPrice = +currentPosition.liquidationPrice;
 		const currentPrice = await this.binance.getCurrentPrice(this.pair, this.mode);
 
@@ -176,8 +184,8 @@ export class MartinGala extends AbstractStrategy {
 		});
 
 		if (
-			(this.configuration.direction === 'BUY' && closest.price < liquidationPrice) ||
-			(this.configuration.direction === 'SELL' && closest.price > liquidationPrice)
+			(side === 'BUY' && closest.price < liquidationPrice) ||
+			(side === 'SELL' && closest.price > liquidationPrice)
 		) {
 			this.log(
 				'Careful! We are moving a martin gala order because it was further than the liquidation price.',
@@ -185,7 +193,7 @@ export class MartinGala extends AbstractStrategy {
 			await this.sendNotification(
 				'CAREFUL! We are moving a martin gala order because it was further than the liquidation price.',
 			);
-			const multiplier = this.configuration.direction === 'BUY' ? 1.001 : 0.999;
+			const multiplier = side === 'BUY' ? 1.001 : 0.999;
 			const newPrice = round(liquidationPrice * multiplier, this.pricePrecision);
 			await this.binance.deleteOrder(this.pair, this.mode, closest.orderId);
 
@@ -207,13 +215,14 @@ export class MartinGala extends AbstractStrategy {
 	private async assertMartinGalaOrdersAreInPlace(): Promise<boolean> {
 		const orders = await this.binance.getCurrentOrders(this.pair, this.mode);
 		const position = await this.binance.getCurrentPosition(this.pair, this.mode);
+		const side = position.positionAmt > 0 ? 'BUY' : 'SELL';
 
 		const inPlace = orders.some(
 			(order) =>
-				order.side === this.configuration.direction &&
+				order.side === side &&
 				order.type === 'LIMIT' &&
-				((this.configuration.direction === 'BUY' && order.price < position.entryPrice) ||
-					(this.configuration.direction === 'SELL' && order.price > position.entryPrice)),
+				((side === 'BUY' && order.price < position.entryPrice) ||
+					(side === 'SELL' && order.price > position.entryPrice)),
 		);
 
 		return inPlace;
@@ -419,10 +428,10 @@ export class MartinGala extends AbstractStrategy {
 	private async createProfitOrderIfNeeded() {
 		const currentPosition = await this.binance.getCurrentPosition(this.pair, this.mode);
 		const positionAmt = Math.abs(+currentPosition?.positionAmt);
+		const side = currentPosition.positionAmt > 0 ? 'BUY' : 'SELL';
 		const open = await this.binance.getCurrentOrders(this.pair, this.mode);
 		const profitOrder = open.find(
-			(order) =>
-				order.type === 'TRAILING_STOP_MARKET' && order.side !== this.configuration.direction,
+			(order) => order.type === 'TRAILING_STOP_MARKET' && order.side !== side,
 		);
 		if (profitOrder) {
 			// Order already in place, check if amount is ok, or remove to create a new one otherwise.
@@ -435,7 +444,7 @@ export class MartinGala extends AbstractStrategy {
 
 		// TODO: Verify both direction's profit
 		const profitPrice =
-			this.configuration.direction === 'BUY'
+			side === 'BUY'
 				? +currentPosition.entryPrice *
 				  (1 +
 						(this.configuration.profitPercentage + this.configuration.profitCallbackPercentage) /
@@ -445,7 +454,7 @@ export class MartinGala extends AbstractStrategy {
 						(this.configuration.profitPercentage + this.configuration.profitCallbackPercentage) /
 							(100 * this.configuration.leverage));
 
-		const direction = this.configuration.direction === 'BUY' ? 'SELL' : 'BUY';
+		const direction = side === 'BUY' ? 'SELL' : 'BUY';
 		this.log(
 			`Creating profit order ${direction}/TRAILING_STOP_MARKET ${positionAmt}@${profitPrice}`,
 		);

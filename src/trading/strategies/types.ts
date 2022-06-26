@@ -45,6 +45,7 @@ export interface MartinGalaConfiguration {
 	stopUsd: number;
 
 	entry?: {
+		enabled?: boolean;
 		price?: number;
 		activationPercentage?: number;
 		callbackPercentage?: number;
@@ -150,6 +151,10 @@ export interface MacdHistogramConfiguration {
 		 */
 		interval: number;
 	};
+	/**
+	 * If true, we will only use entries/re-entries, exit won't be executed.
+	 */
+	disableExit?: boolean;
 }
 
 export interface SignalsConfiguration {

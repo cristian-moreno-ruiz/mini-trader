@@ -131,6 +131,22 @@ describe('MacdHistogram', () => {
 		`);
 		});
 
+		it('should not exit a LONG position if we set disableExit to true', async () => {
+			engine.configuration.disableExit = true;
+
+			binanceMockSettings.positionAmt = '13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0 },
+				{ valueMACDHist: 0.05 },
+				{ valueMACDHist: 0.1 },
+				{ valueMACDHist: 0 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(0);
+		});
+
 		it('should exit a SHORT position if we detect a valley', async () => {
 			binanceMockSettings.positionAmt = '-13';
 			taapiMockSettings.macd = [
@@ -155,6 +171,22 @@ describe('MacdHistogram', () => {
 			  },
 			]
 		`);
+		});
+
+		it('should not exit a SHORT position if we set disableExit to true', async () => {
+			engine.configuration.disableExit = true;
+
+			binanceMockSettings.positionAmt = '-13';
+			taapiMockSettings.macd = [
+				{ valueMACDHist: 0 },
+				{ valueMACDHist: -0.05 },
+				{ valueMACDHist: -0.1 },
+				{ valueMACDHist: 0 },
+			];
+
+			await engine.trade();
+
+			expect(binanceMock.futuresOrder).toHaveBeenCalledTimes(0);
 		});
 	});
 

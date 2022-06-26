@@ -48,7 +48,8 @@ export const MacdHistogram: StrategyDefinition = {
 						},
 						{
 							condition:
-								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < -({{configuration.exitCrossover}})',
+								'({{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} < -({{configuration.exitCrossover}})) ' +
+								'&& "{{configuration.disableExit}}" !== "true"',
 
 							action: 'fetch',
 							input: { save: 'exitSignal', source: 'local', data: 'BUY' },
@@ -81,7 +82,8 @@ export const MacdHistogram: StrategyDefinition = {
 						},
 						{
 							condition:
-								'{{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} > {{configuration.exitCrossover}}',
+								'({{configuration.exitCrossover}} === false || {{macd.2.valueMACDHist}} > {{configuration.exitCrossover}}) ' +
+								'&& "{{configuration.disableExit}}" !== "true"',
 							action: 'fetch',
 							input: { save: 'exitSignal', source: 'local', data: 'SELL' },
 						},
