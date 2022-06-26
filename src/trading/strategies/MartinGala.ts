@@ -63,10 +63,6 @@ export class MartinGala extends AbstractStrategy {
 		const entrySize = await this.calculateEntrySize(currentPrice);
 
 		if (!isOpen) {
-			if (this.configuration.entry?.enabled === false) {
-				return true;
-			}
-
 			// TODO: Check if there is an emergency stop, if so, stop the execution (or wait XXX minutes).
 			const stop = await this.checkEmergencyStop();
 
@@ -84,6 +80,9 @@ export class MartinGala extends AbstractStrategy {
 
 			const entryInPlace = await this.checkEntryOrderExists(entrySize);
 			if (this.configuration.entry) {
+				if (this.configuration.entry?.enabled === false) {
+					return true;
+				}
 				if (!entryInPlace) {
 					await this.createEntryOrder(entrySize);
 				}
