@@ -112,4 +112,58 @@ export const strategies: StrategyConfiguration[] = [
 	// 	// 	maxPosition: 0.01,
 	// 	// },
 	// },
+
+	// {
+	// 	strategy: 'Signals',
+	// 	symbol: 'Spider',
+	// 	dialog: '⚫ VIP SPIDER CRYPTO',
+	// 	percentageSize: 20,
+	// },
+	{
+		strategy: 'Signals',
+		symbol: 'CriptoTest',
+		dialog: 'CriptoTest',
+		percentageSize: 20,
+	},
+
+	/**
+	 * The following two configurations go together:
+	 */
+	{
+		strategy: 'Custom',
+		name: 'MacdHistogram',
+		mode: 'FUTURES',
+		leverage: 15,
+		symbol: 'XRP/USDT',
+		entrySize: 15,
+		// stop: 0.5,
+		// profit: 1,
+		disableExit: true,
+		entryCrossover: false,
+		exitCrossover: false,
+		interval: '15m',
+		// reEntries: {
+		// 	interval: 15,
+		// 	percentageSize: 50,
+		// 	maxPosition: 0.01,
+		// },
+	},
+	{
+		strategy: 'MartinGala',
+		mode: 'FUTURES',
+		symbol: 'XRP/USDT',
+		reBuyAmountPercentage: 100,
+		reBuySpacingPercentage: 0.5,
+		stopUsd: 5,
+		profitPercentage: 7,
+		profitCallbackPercentage: 0.3,
+		entry: {
+			enabled: false,
+		},
+		// Unnecessary in this case but required for the strategy to work.
+		restart: true,
+		entrySize: 0.001,
+		direction: Direction.BUY,
+		leverage: 15,
+	},
 ];
